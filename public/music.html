@@ -1,21 +1,57 @@
 <html ng-app="mymusic">
     <head>
         <title>My music</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
         <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
         <link rel="stylesheet" href="style.css"/>
     </head>
     <body ng-cloak class="ng-cloak" ng-controller="MainController">
-        <div ng-if="loading">
-            <h1>Loading...</h1>
+        <div ng-if="loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+        <div class="music" ng-if="auth && !loading">
+            <div class="player">
+                <div class="col-1 controls">
+                    <div>
+                        <i class="fas fa-backward"></i>
+                    </div>
+                    <div ng-if="!music.playing">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div ng-if="music.playing">
+                        <i class="fas fa-pause"></i>
+                    </div>
+                    <div>
+                        <i class="fas fa-forward"></i>
+                    </div>
+                </div>
+                <div class="col-5 songtitle">
+                    <marquee #songTitleMarquee
+                             direction="left"
+                             behavior="alternate">
+                        Still Corners - The Trip
+                    </marquee>
+                </div>
+            </div>
+            <div class="panels"></div>
         </div>
-        <div ng-if="auth && !loading">
-            <p>Logged in</p>
-            <button ng-click="logout()">Logout</button>
+        <div class="auth" ng-if="!auth && !loading">
+            <form>
+                <div class="form-group">
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Username"
+                           ng-keyup="$event.keyCode == 13 && authPost()"
+                           ng-model="authData.username">
+                </div>
+                <div class="form-group">
+                    <input type="password"
+                           class="form-control"
+                           placeholder="Password"
+                           ng-keyup="$event.keyCode == 13 && authPost()"
+                           ng-model="authData.password">
+                </div>
+                <button type="button" class="btn btn-light" ng-click="authPost()">Authorize</button>
+            </form>
         </div>
-        <div ng-if="!auth && !loading">
-            <button ng-click="authPost()">Auth</button>
-        </div>
-
 
         <!--Lib-->
         <script src="jquery.min.js"></script>
