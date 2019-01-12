@@ -1,0 +1,29 @@
+<html ng-app="mymusic">
+    <head>
+        <title>My music</title>
+        <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="style.css"/>
+    </head>
+    <body ng-cloak class="ng-cloak" ng-controller="MainController">
+        <div ng-if="loading">
+            <h1>Loading...</h1>
+        </div>
+        <div ng-if="auth && !loading">
+            <p>Logged in</p>
+            <button ng-click="logout()">Logout</button>
+        </div>
+        <div ng-if="!auth && !loading">
+            <button ng-click="authPost()">Auth</button>
+        </div>
+
+
+        <!--Lib-->
+        <script src="jquery.min.js"></script>
+        <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="/node_modules/angular/angular.js"></script>
+        <!--JS-->
+        <script src="app/service.js"></script>
+        <script src="app/controller.js"></script>
+        <script src="app/core.js"></script>
+    </body>
+</html>
