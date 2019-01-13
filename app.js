@@ -6,6 +6,9 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const uuid = require('node-uuid');
 
 /**
  * Dotenv
@@ -43,12 +46,28 @@ function configureApp(app) {
     }));
 
     /**
+     * Multer
+     */
+    const storage = multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, path.join('./store/'))
+        },
+        filename: (req, file, cb) => {
+            cb(null, uuid.v4())
+        }
+    });
+    app.upload = multer({storage: storage});
+
+    /**
      * Public
      */
     app.use('/node_modules', express.static('node_modules'));
     app.use(express.static('public'));
     app.get('/view', (req, res) => res.sendFile('music.html', { root: __dirname + '/public' }));
-    app.use(bodyParser.json());
+    app.use((req, res, next) => {
+        next();
+    });
+    app.use(bodyParser.json({limit: '100mb', extended: false}));
 
     /**
      * Custom middlewares

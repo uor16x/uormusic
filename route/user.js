@@ -1,20 +1,27 @@
 const router = require('express').Router();
-let app;
 
-module.exports = _app => {
-    app = _app;
+module.exports = app => {
 
     /**
      * Get user
      */
-    router.get('/auth', (req, res) => {
-        return res.result(null, req.session.auth ? req.session.user : null);
+    router.get('/', async (req, res) => {
+        if (req.session.auth) {
+            const currentUser = await app.services.user.get({ _id: req.session.user._id }, false, ['playlists']);
+            if (!currentUser) {
+                return res.result('Error getting current user, even though he is authorized');
+            }
+            currentUser.playlists = currentUser.playlists.map(async _id => await app.services.playlist.get({ _id }));
+            currentUser.password = undefined;
+            return res.result(null, currentUser);
+        }
+        return res.result(null, null);
     });
 
     /**
      * Sign in / Sign up
      */
-    router.post('/auth', async (req, res) => {
+    router.post('/', async (req, res) => {
         if (!req.body.username) {
             return res.result('Username missing');
         }
@@ -22,7 +29,7 @@ module.exports = _app => {
             return res.result('Password missing');
         }
         let currUser;
-        const findUser = await app.services.user.get({ username: req.body.username });
+        const findUser = await app.services.user.get({ username: req.body.username }, false, ['playlists']);
         if (!findUser) {
             /**
              * Sign up
@@ -41,6 +48,7 @@ module.exports = _app => {
             if (!passwordMatch) {
                 return res.result('Wrong password')
             }
+            findUser.playlists = findUser.playlists.map(async _id => await app.services.playlist.get({ _id }));
             findUser.password = undefined;
             currUser = findUser;
         }
@@ -52,9 +60,25 @@ module.exports = _app => {
     /**
      * Logout
      */
-    router.delete('/auth', (req, res) => {
+    router.delete('/', (req, res) => {
         req.session.auth = false;
         req.session.user = null;
+        return res.result(null);
+    });
+
+    /**
+     * Playlists order
+     */
+    router.put('/', async (req, res) => {
+        if (!req.body.playlists) {
+            return res.result('Playlists missing');
+        }
+        const currentUser = await app.services.user.get({ username: req.body.username });
+        if (!currentUser) {
+            return res.result('Error getting current user');
+        }
+        currentUser.playlists = req.body.playlists;
+        await currentUser.save();
         return res.result(null);
     });
 

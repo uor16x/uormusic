@@ -2,70 +2,109 @@
   display: none !important;
 }
 
+// scrollbar
+/* width */
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.06);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+#newSongDisk {
+  width: 0;
+  height: 0;
+  position: absolute;
+  top: -9000px;
+  z-index: 0;
+}
+
 body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+
   background: url(wallp.png) no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
-}
 
-.lds-ellipsis {
-  display: inline-block;
-  width: 64px;
-  height: 64px;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-}
-.lds-ellipsis div {
-  position: absolute;
-  top: 27px;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #fff;
-  animation-timing-function: cubic-bezier(0, 1, 1, 0);
-}
-.lds-ellipsis div:nth-child(1) {
-  left: 6px;
-  animation: lds-ellipsis1 0.6s infinite;
-}
-.lds-ellipsis div:nth-child(2) {
-  left: 6px;
-  animation: lds-ellipsis2 0.6s infinite;
-}
-.lds-ellipsis div:nth-child(3) {
-  left: 26px;
-  animation: lds-ellipsis2 0.6s infinite;
-}
-.lds-ellipsis div:nth-child(4) {
-  left: 45px;
-  animation: lds-ellipsis3 0.6s infinite;
-}
-@keyframes lds-ellipsis1 {
-  0% {
-    transform: scale(0);
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
+
+  .lds-ellipsis {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
   }
-  100% {
-    transform: scale(1);
+  .lds-ellipsis div {
+    position: absolute;
+    top: 27px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #fff;
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
   }
-}
-@keyframes lds-ellipsis3 {
-  0% {
-    transform: scale(1);
+  .lds-ellipsis div:nth-child(1) {
+    left: 6px;
+    animation: lds-ellipsis1 0.6s infinite;
   }
-  100% {
-    transform: scale(0);
+  .lds-ellipsis div:nth-child(2) {
+    left: 6px;
+    animation: lds-ellipsis2 0.6s infinite;
   }
-}
-@keyframes lds-ellipsis2 {
-  0% {
-    transform: translate(0, 0);
+  .lds-ellipsis div:nth-child(3) {
+    left: 26px;
+    animation: lds-ellipsis2 0.6s infinite;
   }
-  100% {
-    transform: translate(19px, 0);
+  .lds-ellipsis div:nth-child(4) {
+    left: 45px;
+    animation: lds-ellipsis3 0.6s infinite;
+  }
+  @keyframes lds-ellipsis1 {
+    0% {
+      transform: scale(0);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes lds-ellipsis3 {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(0);
+    }
+  }
+  @keyframes lds-ellipsis2 {
+    0% {
+      transform: translate(0, 0);
+    }
+    100% {
+      transform: translate(19px, 0);
+    }
   }
 }
 
@@ -84,9 +123,13 @@ body {
   }
 }
 
-// Colors
-$main: rgba(0,0,0,0.3);
+// Colors && vars
+$main: rgba(33,33,33,0.4);
+$item: rgba(0,0,0,0.1);
+$item-active: rgba(0,0,0,0.3);
 $controls: rgba(white, 0.8);
+$header-height: 45px;
+$footer-height: 25px;
 
 .music {
   display: flex;
@@ -96,9 +139,14 @@ $controls: rgba(white, 0.8);
     display: flex;
     flex-direction: row;
     width: 100%;
-    height: 45px;
+    height: $header-height;
     background-color: $main;
     color: $controls;
+
+    i {
+      line-height: 45px;
+      cursor: pointer;
+    }
 
     .controls {
       display: flex;
@@ -106,9 +154,6 @@ $controls: rgba(white, 0.8);
       justify-content: space-between;
       min-width: 95px;
 
-      i {
-        line-height: 45px;
-      }
     }
 
     .songtitle {
@@ -120,5 +165,125 @@ $controls: rgba(white, 0.8);
         align-self: center;
       }
     }
+
+    .extra {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-end;
+
+      span, .span-wrapper {
+        min-width: 100px;
+      }
+
+      i {
+        margin: 0 3px;
+      }
+    }
   }
+
+  .panels {
+    display: flex;
+    flex-direction: row;
+    padding: 3px;
+    margin-bottom: 3px;
+
+    .item {
+      display: flex;
+      background-color: $item;
+      color: $controls;
+      border-radius: 5px;
+      margin: 4px 0;
+      padding: 7px 12px;
+
+      &.active {
+        background-color: $item-active;
+      }
+
+      &:hover {
+        cursor: pointer;
+      }
+
+      .pointer {
+        font-weight: 900;
+        margin-right: 6px;
+      }
+
+      .cut {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+    }
+
+    .playlists, .songs, .extra{
+      padding: 3px 10px;
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100% - #{$header-height} - 18px - #{$footer-height});
+      background-color: $main;
+      overflow-y: scroll;
+      margin-right: 4px;
+    }
+
+    .extra {
+      max-width: 25%;
+      width: 25%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+
+      .actions, .queue {
+        height: 48%;
+        background-color: $item;
+        overflow-y: scroll;
+        border-radius: 5px;
+        padding: 3px 10px;
+
+        .item {
+          justify-content: center;
+        }
+
+        span {
+          width: 100%;
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  .footer {
+    display: flex;
+    flex-direction: row;
+    align-self: center;
+    background-color: $main;
+    height: $footer-height;
+    width: calc(100% - 12px);
+    border-radius: 5px;
+    padding: 3px;
+  }
+}
+
+// Modal
+.modal-content {
+  background-color: rgba(white,0.1);
+}
+
+.modal-title {
+  color: $controls;
+}
+
+.modal-body {
+  padding: 8px;
+
+  .form-group {
+    margin-bottom: 0;
+  }
+}
+
+.modal-header, .modal-footer {
+  border: none;
+  padding: 10px;
+  color: $controls;
 }

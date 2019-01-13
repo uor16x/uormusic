@@ -1,16 +1,14 @@
 const _ = require('lodash');
-const hasher = require('password-hash-node');
 let app;
 let model;
 
 const service = {
-    create: async (username, password) => {
-        const newUser = new model({
-            username,
-            password: await hasher.create(password, 'SSHA'),
-            playlists: []
+    create: async name => {
+        const newPlaylist = new model({
+            name,
+            songs: []
         });
-        return newUser.save();
+        return newPlaylist.save();
     },
     get: async (filter, multiple, populationArr) => {
         const query = multiple ? model.find(filter) : model.findOne(filter);
@@ -18,13 +16,12 @@ const service = {
             acc = acc.populate(item);
             return acc;
         }, query) : query;
-    },
-    verifyPassword: async (password, hash) => hasher.verify(password, hash)
+    }
 };
 
 module.exports = _app => {
     app = _app;
-    model = app.models.user;
+    model = app.models.playlist;
     return service;
 };
 

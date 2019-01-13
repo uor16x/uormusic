@@ -6,34 +6,82 @@
         <link rel="stylesheet" href="style.css"/>
     </head>
     <body ng-cloak class="ng-cloak" ng-controller="MainController">
+        <input id="newSongDisk" multiple file-model="music.newSongFile" type="file" accept="audio/*"/>
+        <audio id="audio"></audio>
         <div ng-if="loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
-        <div class="music" ng-if="auth && !loading">
+        <div class="music" ng-if="user">
             <div class="player">
                 <div class="col-1 controls">
-                    <div>
+                    <div ng-click="prev()">
                         <i class="fas fa-backward"></i>
                     </div>
-                    <div ng-if="!music.playing">
+                    <div ng-if="!music.playing" ng-click="play()">
                         <i class="fas fa-play"></i>
                     </div>
-                    <div ng-if="music.playing">
+                    <div ng-if="music.playing" ng-click="pause()">
                         <i class="fas fa-pause"></i>
                     </div>
-                    <div>
+                    <div ng-click="next(true)">
                         <i class="fas fa-forward"></i>
                     </div>
                 </div>
-                <div class="col-5 songtitle">
+                <div class="col-6 songtitle">
                     <marquee #songTitleMarquee
                              direction="left"
                              behavior="alternate">
                         Still Corners - The Trip
                     </marquee>
                 </div>
+                <div class="col-5 extra">
+                    <div class="span-wrapper">
+                        <span>
+                            {{user.username}}
+                            <i data-toggle="tooltip"
+                               data-placement="bottom" title="Logout"
+                               ng-click="logout()"
+                               class="fas fa-sign-out-alt"></i>
+                        </span>
+                    </div>
+                </div>
             </div>
-            <div class="panels"></div>
+            <div class="panels">
+                <div class="col-3 playlists">
+                    <div class="item"
+                         ng-class="{'active': item._id === music.currentPlaylistId}"
+                         ng-click="setPlaylist(item)"
+                         ng-if="user.playlists.length > 0"
+                         ng-repeat="item in user.playlists">
+                        <span ng-if="item._id === music.currentPlaylistId" class="pointer"> > </span>
+                        <span class="cut">{{item.name}}</span>
+                    </div>
+                </div>
+                <div class="col-6 songs">
+                    <div class="item"
+                         ng-class="{'active': item._id === music.currentSongId}"
+                         ng-click="setSong(item)"
+                         ng-if="music.currentPlaylistSongs.length > 0"
+                         ng-repeat="item in music.currentPlaylistSongs">
+                        <span ng-if="item._id === music.currentSongId" class="pointer"> > </span>
+                        <span class="cut">{{item.title}}</span>
+                    </div>
+                </div>
+                <div class="extra">
+                    <div class="actions">
+                        <div class="item" ng-click="modals.addPlaylist.modal('show')">
+                            <span>Add playlist</span>
+                        </div>
+                        <div class="item" ng-click="addSongModalShow()">
+                            <span>Add song</span>
+                        </div>
+                    </div>
+                    <div class="queue"></div>
+                </div>
+            </div>
+            <div class="footer">
+
+            </div>
         </div>
-        <div class="auth" ng-if="!auth && !loading">
+        <div class="auth" ng-if="!user && !loading">
             <form>
                 <div class="form-group">
                     <input type="text"
@@ -53,11 +101,75 @@
             </form>
         </div>
 
+        <!--Modals-->
+        <!--Add Playlist-->
+        <div class="modal fade" id="addPlaylistModal" tabindex="-1" role="dialog" aria-labelledby="addPlaylistLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addPlaylistLabel">Add playlist</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <input type="text"
+                                   class="form-control"
+                                   placeholder="Name"
+                                   ng-model="music.newPlaylistName">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" ng-click="addPlaylist()">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Add Song-->
+        <div class="modal fade" id="addSongModal" tabindex="-1" role="dialog" aria-labelledby="addSongLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addSongLabel">Add song</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <input type="text"
+                                   class="form-control"
+                                   placeholder="Youtube video link"
+                                   ng-model="music.newSongYoutubeLink">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button"
+                                class="btn btn-primary"
+                                ng-class="{'disabled': !music.newSongYoutubeLink}"
+                                ng-click="music.newSongYoutubeLink && addSongYoutube()">
+                            Add from YouTube
+                        </button>
+                        <span>or</span>
+                        <button type="button"
+                                class="btn btn-primary"
+                                ng-click="selectFile()">
+                            Add from Disk
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!--Lib-->
         <script src="jquery.min.js"></script>
         <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="/node_modules/angular/angular.js"></script>
         <!--JS-->
+        <script src="app/directive.js"></script>
         <script src="app/service.js"></script>
         <script src="app/controller.js"></script>
         <script src="app/core.js"></script>
