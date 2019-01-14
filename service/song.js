@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const fs = require('fs');
 let app;
 let model;
 
@@ -9,6 +10,14 @@ const service = {
             acc = acc.populate(item);
             return acc;
         }, query) : query;
+    },
+    remove: async IDs => {
+        const songs = await app.services.song.get({ _id: IDs }, true, ['file']);
+        songs.forEach(async song => {
+            fs.unlink(song.file.path, err => err && console.error(err));
+            await song.file.remove();
+            await song.remove();
+        });
     }
 };
 

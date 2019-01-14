@@ -1,28 +1,6 @@
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important;
 }
-
-// scrollbar
-/* width */
-::-webkit-scrollbar {
-  width: 3px;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.06);
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: #888;
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
 #newSongDisk {
   width: 0;
   height: 0;
@@ -31,7 +9,34 @@
   z-index: 0;
 }
 
+.ui-notification {
+  width: auto;
+  border-radius: 5px;
+  padding: 0 5px;
+}
+
 body {
+  // scrollbar
+  /* width */
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.06);
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
   overflow-x: hidden;
   overflow-y: hidden;
 
@@ -164,6 +169,14 @@ $footer-height: 25px;
         display: flex;
         align-self: center;
       }
+
+      .time {
+        height: min-content;
+        display: flex;
+        flex-direction: row;
+        align-self: center;
+        margin-right: 30px;
+      }
     }
 
     .extra {
@@ -172,8 +185,15 @@ $footer-height: 25px;
       align-items: center;
       justify-content: flex-end;
 
+      div {
+        cursor: pointer;
+
+      }
+
       span, .span-wrapper {
         min-width: 100px;
+        text-align: center;
+
       }
 
       i {
@@ -195,6 +215,11 @@ $footer-height: 25px;
       border-radius: 5px;
       margin: 4px 0;
       padding: 7px 12px;
+      min-height: 38px;
+
+      &.dropzone:hover {
+        background-color: $item-active;
+      }
 
       &.active {
         background-color: $item-active;
@@ -224,7 +249,9 @@ $footer-height: 25px;
       height: calc(100% - #{$header-height} - 18px - #{$footer-height});
       background-color: $main;
       overflow-y: scroll;
+      overflow-x: hidden;
       margin-right: 4px;
+      margin-bottom: 4px;
     }
 
     .extra {
@@ -261,13 +288,30 @@ $footer-height: 25px;
     height: $footer-height;
     width: calc(100% - 12px);
     border-radius: 5px;
-    padding: 3px;
+    padding: 3px 3px 3px 10px;
+    color: $controls;
+
+    .playlistname {
+      &:hover {
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    }
+
+    span, b {
+      line-height: 18px;
+      font-size: 13px;
+    }
+
+    b {
+      margin: 0 4px;
+    }
   }
 }
 
 // Modal
 .modal-content {
-  background-color: rgba(white,0.1);
+  background-color: rgba(10,10,10,0.4);
 }
 
 .modal-title {
@@ -286,4 +330,35 @@ $footer-height: 25px;
   border: none;
   padding: 10px;
   color: $controls;
+}
+
+#copySongsModal, #removePlaylistModal, #removeSongModal {
+  .step {
+    display: flex;
+    flex-direction: column;
+    max-height: 200px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+  }
+
+  .empty {
+    color: white;
+    width: 100%;
+    text-align: center;
+  }
+
+  .item {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin: 4px 0;
+    color: $controls;
+    padding: 7px 12px;
+    min-height: 38px;
+    cursor: pointer;
+
+    &.active {
+      background-color: rgba(255,255,255,0.4);
+    }
+  }
 }

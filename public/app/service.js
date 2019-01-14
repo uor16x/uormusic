@@ -25,6 +25,22 @@ function MusicService($http) {
             name
         });
     };
+    this.removePlaylist = function (id) {
+        return $http.delete(`/playlist/${id}`);
+    };
+    this.removeSong = function (playlistId, songId) {
+        return $http.delete(`/song/${playlistId}/${songId}`);
+    };
+    this.renamePlaylist = function (id, name) {
+        return $http.put(`/playlist/${id}`, {
+            name
+        });
+    };
+    this.renameSong = function (id, title) {
+        return $http.put(`/song/rename/${id}`, {
+            title
+        });
+    };
     this.getPlaylist = function (id) {
         return $http.get(`/playlist/${id}`);
     };
@@ -43,5 +59,10 @@ function MusicService($http) {
             transformRequest: angular.identity
         });
         // return $http.post(`/song/${playlistId}`, formData);
+    };
+    this.copySongs = function (playlistId, songIDs) {
+        return $http.put(`/song/${playlistId}`, {
+            songIDs
+        })
     }
 }
