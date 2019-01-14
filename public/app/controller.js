@@ -1,4 +1,34 @@
-function MainController($scope, AuthService, MusicService, Notification) {
+function MainController($scope, AuthService, MusicService, Notification, socket) {
+    $('.modal').on('shown.bs.modal', function() {
+        $(this).find('[autofocus]').focus();
+    });
+
+    $scope.queue = {};
+    socket.on('progress:start', function (data) {
+        $scope.queue[data.videoId] = {
+            title: data.title,
+            percentage: 0
+        };
+    });
+    socket.on('progress:update', function (data) {
+        $scope.queue[data.videoId].percentage = Math.floor(data.progress);
+    });
+    socket.on('progress:finish', function (data) {
+        $scope.queue[data.videoId].finished = true;
+        setTimeout(() => {
+            delete $scope.queue[data.videoId];
+        }, 1500);
+    });
+    socket.on('lastfm:access', function (data) {
+        if ($scope.lastFMWinRef) {
+            $scope.lastFMWinRef.close();
+            $scope.lastFMWinRef = null;
+        }
+    });
+    socket.on('lastfm:auth', function (data) {
+        $scope.authGet();
+    });
+
     $scope.user = null;
     const initModalOptions = {
         show: false
@@ -15,6 +45,7 @@ function MainController($scope, AuthService, MusicService, Notification) {
     $scope.music = {
         playing: false,
         repeat: false,
+        scrobbled: false,
         audio: $('#audio')[0],
 
         currentTime: '00:00',
@@ -39,25 +70,41 @@ function MainController($scope, AuthService, MusicService, Notification) {
         currentSongId: null,
         currentSongTitle: ''
     };
+    $scope.sortablePlaylists = {
+        stop: () => {
+            MusicService.sortPlaylists($scope.user.playlists.map(p => p._id))
+                .catch(err => Notification.error(err.data));
+        }
+    };
+    $scope.sortableSongs = {
+        stop: () => {
+            MusicService.sortSongs($scope.music.currentPlaylistId, $scope.music.currentPlaylistSongs.map(s => s._id))
+                .catch(err => Notification.error(err.data));
+        }
+    };
 
     $scope.loading = true;
     $scope.authData = {
         username: '',
         password: ''
     };
-
-    AuthService.authGet()
-        .then(response => {
-            if (response.data) {
-                AuthService.set(response.data);
-                $scope.user = response.data;
-                Notification.primary(`Welcome, ${$scope.user.username}!`);
-            }
-        })
-        .catch(err => Notification.info(err.data))
-        .finally(() => {
-            $scope.loading = false;
-        });
+    $scope.authGet = () => {
+        AuthService.authGet()
+            .then(response => {
+                if (response.data) {
+                    AuthService.set(response.data);
+                    if (!$scope.user) {
+                        Notification.primary(`Welcome, ${response.data.username}!`);
+                    }
+                    $scope.user = response.data;
+                }
+            })
+            .catch(err => Notification.info(err.data))
+            .finally(() => {
+                $scope.loading = false;
+            });
+    };
+    $scope.authGet();
 
     $scope.authPost = function () {
         if (!$scope.authData.username) {
@@ -174,7 +221,6 @@ function MainController($scope, AuthService, MusicService, Notification) {
             return Notification.info('Playlist name missing');
         }
         const plistId = $scope.music.currentPlaylistId;
-        $scope.loading = true;
         $scope.modals.renamePlaylist.modal('hide');
         MusicService.renamePlaylist(plistId, name)
             .then(response => {
@@ -250,7 +296,22 @@ function MainController($scope, AuthService, MusicService, Notification) {
     };
 
     $scope.addSongYoutube = () => {
-
+        const link = $scope.music.newSongYoutubeLink;
+        $scope.modals.addSong.modal('hide');
+        const currPlist = $scope.music.currentPlaylistId;
+        MusicService.uploadSongYT(currPlist, link, socket.getId())
+            .then(response => {
+                if (response.data) {
+                    Notification.info('Upload finished')
+                }
+                if (response.data && currPlist === $scope.music.currentPlaylistId) {
+                    $scope.music.currentPlaylistSongs.unshift(response.data);
+                }
+            })
+            .catch(err => {
+                return Notification.error(err.data);
+            });
+        $scope.music.newSongYoutubeLink = '';
     };
 
     $scope.selectFile = () => {
@@ -288,6 +349,7 @@ function MainController($scope, AuthService, MusicService, Notification) {
         $scope.music.currentPlayingPlaylistId = currentPlayingPlaylistId || $scope.music.currentPlaylistId;
         $scope.music.currentPlayingPlaylistName = currentPlayingPlaylistName || $scope.music.currentPlaylistName;
         $scope.music.currentPlayingPlaylistSongs = currentPlayingPlaylistSongs || $scope.music.currentPlaylistSongs;
+        $scope.music.scrobbled = false;
         $scope.play();
     };
 
@@ -374,6 +436,10 @@ function MainController($scope, AuthService, MusicService, Notification) {
     };
 
     $scope.updateTime = () => {
+        if ($scope.music.audio.currentTime > 60 && !$scope.music.scrobbled) {
+            $scope.music.scrobbled = true;
+            $scope.scrobble($scope.music.currentSongId);
+        }
         $scope.music.currentTime = $scope.convertTime($scope.music.audio.currentTime);
         $scope.music.durationTime = $scope.music.audio.duration ?
             $scope.convertTime($scope.music.audio.duration) :
@@ -473,5 +539,36 @@ function MainController($scope, AuthService, MusicService, Notification) {
                 return 'Select destination';
         }
     }
+
+    /**
+     * LFM
+     */
+    $scope.lastFMWinRef = null;
+    $scope.lfmAction = () => {
+        if ($scope.user.lastFMUsername && $scope.user.lastFMKey) {
+            $scope.user.lastFMToggle = !$scope.user.lastFMToggle;
+            MusicService.setLastFMToggle($scope.user.lastFMToggle)
+                .catch(err => Notification.error(err.data));
+        } else {
+            $scope.getLfmLink();
+        }
+    };
+    $scope.getLfmLink = () => {
+        MusicService.getLfmLink(socket.getId())
+            .then(response => {
+                if (response.data) {
+                    $scope.lastFMWinRef = window.open(response.data, 'Last FM Auth',
+                        `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,height=${screen.availHeight-100},width=${screen.availWidth-100},top=100,left=100`);
+                    $scope.lastFMWinRef.focus();
+                }
+            })
+            .catch(err => Notification.error(err.data));
+    };
+    $scope.scrobble = id => {
+        if ($scope.user.lastFMToggle) {
+            MusicService.scrobble(id)
+                .catch(err => Notification.error(err.data));
+        }
+    };
 
 }

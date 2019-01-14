@@ -60,9 +60,37 @@ function MusicService($http) {
         });
         // return $http.post(`/song/${playlistId}`, formData);
     };
+    this.uploadSongYT = function (playlistId, link, socketId) {
+        return $http.post('/song/youtube', {
+            playlistId,
+            link,
+            socketId
+        });
+    };
     this.copySongs = function (playlistId, songIDs) {
         return $http.put(`/song/${playlistId}`, {
             songIDs
         })
+    };
+    this.sortPlaylists = function (playlists) {
+        return $http.put('/user', {
+            playlists
+        })
+    };
+    this.setLastFMToggle = function (state) {
+        return $http.put('/user', {
+            lastFMToggle: state
+        });
+    };
+    this.scrobble = function (songId) {
+        return $http.get(`/lfm/scrobble/${songId}`);
+    };
+    this.sortSongs = function (id, songs) {
+        return $http.put(`/playlist/${id}`, {
+            songs
+        });
+    };
+    this.getLfmLink = function (socketId) {
+        return $http.get(`/lfm/${socketId}`);
     }
 }

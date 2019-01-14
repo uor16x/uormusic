@@ -70,14 +70,16 @@ module.exports = app => {
      * Playlists order
      */
     router.put('/', async (req, res) => {
-        if (!req.body.playlists) {
-            return res.result('Playlists missing');
-        }
-        const currentUser = await app.services.user.get({ username: req.body.username });
+        const currentUser = await app.services.user.get({ _id: req.session.user._id });
         if (!currentUser) {
             return res.result('Error getting current user');
         }
-        currentUser.playlists = req.body.playlists;
+        if (req.body.playlists) {
+            currentUser.playlists = req.body.playlists;
+        }
+        if (typeof req.body.lastFMToggle === 'boolean') {
+            currentUser.lastFMToggle = req.body.lastFMToggle;
+        }
         await currentUser.save();
         return res.result(null);
     });

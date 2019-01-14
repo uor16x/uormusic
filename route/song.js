@@ -1,7 +1,65 @@
 const router = require('express').Router();
+const fetchVideoInfo = require('youtube-info');
+let yt;
 const path = require('path');
 
+const idParserRegExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+const idParser = link => {
+    const match = link.match(idParserRegExp);
+    return (match && match[7].length === 11)? match[7] : false;
+};
+
 module.exports = app => {
+    yt = require('../helper/youtube')
+    router.post('/youtube', (req, res) => {
+        if (!req.body.playlistId) {
+            return res.result('Playlist id missing');
+        }
+       if (!req.body.link) {
+           return res.result('Link missing');
+       }
+        if (!req.body.socketId) {
+            return res.result('SocketId missing');
+        }
+       const videoId = idParser(req.body.link);
+        if (!videoId) {
+            return res.result('Can\'t parse id');
+        }
+        fetchVideoInfo(videoId, function (err, videoInfo) {
+            if (err) {
+                return res.result(err.message);
+            }
+            global.sockets[req.body.socketId].emit('progress:start', {
+                videoId: videoInfo.videoId,
+                title: videoInfo.title
+            });
+            const dl = new yt();
+            dl.getMP3(videoId, req.body.socketId, async (err, data) => {
+                if (err) {
+                    return res.result('Error download video');
+                }
+                const fileObject = new app.models.file({
+                    path: data.file
+                });
+                fileObject.save(err => {
+                    return err ? console.error(err) : null;
+                });
+                const newSong = new app.models.song({
+                    title: data.videoTitle,
+                    file: fileObject
+                });
+                await newSong.save();
+                const playlist = await app.services.playlist.get({ _id: req.body.playlistId });
+                if (!playlist) {
+                    return res.result('Error getting playlist');
+                }
+                playlist.songs = [newSong._id, ...playlist.songs];
+                await playlist.save();
+                global.sockets[req.body.socketId].emit('progress:finish', { videoId })
+                return res.result(null, newSong);
+            });
+        });
+    });
 
     router.post('/:id', app.upload.array("songs[]", 30), async (req, res) => {
         const songs = await req.files

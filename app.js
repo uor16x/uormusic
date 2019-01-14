@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const lastfmapi = require('lastfmapi');
 const uuid = require('node-uuid');
 
 /**
@@ -44,6 +45,11 @@ function configureApp(app) {
         saveUninitialized: true,
         cookie: { secure: false }
     }));
+    app.lastFM = new lastfmapi({
+        'api_key' : app.env.LFM_API_KEY,
+        'secret' : app.env.LFM_SECRET
+    });
+    global.sockets = {};
 
     /**
      * Multer
@@ -63,7 +69,7 @@ function configureApp(app) {
      */
     app.use('/node_modules', express.static('node_modules'));
     app.use(express.static('public'));
-    app.get('/view', (req, res) => res.sendFile('music.html', { root: __dirname + '/public' }));
+    app.get('/', (req, res) => res.sendFile('music.html', { root: __dirname + '/public' }));
     app.use((req, res, next) => {
         next();
     });
@@ -72,6 +78,15 @@ function configureApp(app) {
     /**
      * Custom middlewares
      */
+    app.use((req, res, next) => {
+        if (req.session.auth) {
+            return next();
+        }
+        if ((req.originalUrl === '/user' && req.method !== 'PUT') || req.originalUrl.indexOf('/lfm/cb') > -1) {
+            return next();
+        }
+        return res.status(401).end();
+    });
     app.use((req, res, next) => {
         res.result = function (err, data) {
             if (err) {
@@ -96,7 +111,15 @@ function configureApp(app) {
         }
     }
     app.services = require('./service')(app);
-    app.listen(app.env.PORT, () => {
+    const server = require('http').Server(app);
+    const io = require('socket.io')(server);
+    io.on('connection', function (socket) {
+        global.sockets[socket.id] = socket;
+        socket.on('disconnect', () => {
+            global.sockets[socket.id] = undefined;
+        });
+    });
+    server.listen(app.env.PORT, () => {
         console.log('Server started');
     });
 }

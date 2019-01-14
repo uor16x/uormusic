@@ -6,7 +6,10 @@ const userSchema = mongoose.Schema({
     playlists: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Playlist'
-    }]
+    }],
+    lastFMUsername: String,
+    lastFMKey: String,
+    lastFMToggle: Boolean
 });
 
 module.exports = mongoose.model('User', userSchema);

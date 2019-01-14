@@ -1,13 +1,13 @@
-<html ng-app="mymusic">
+<html ng-app="mymusic" ng-controller="MainController">
     <head>
-        <title>My music</title>
+        <title>{{music.currentSongTitle || 'MyMusic'}}</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
         <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
         <link rel="stylesheet" href="/node_modules/jquery-ui-dist/jquery-ui.min.css"/>
         <link rel="stylesheet" href="/node_modules/angular-ui-notification/dist/angular-ui-notification.min.css"/>
         <link rel="stylesheet" href="style.css"/>
     </head>
-    <body ng-cloak class="ng-cloak" ng-controller="MainController">
+    <body ng-cloak class="ng-cloak">
         <input id="newSongDisk" multiple file-model="music.newSongFile" type="file" accept="audio/*"/>
         <audio id="audio" ng-timeupdate="updateTime()"></audio>
         <div ng-if="loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
@@ -47,8 +47,10 @@
                             <b ng-if="music.repeat"> ]</b>
                         </span>
                     </div>
-                    <div class="span-wrapper" ng-click="music.repeat = !music.repeat">
+                    <div class="span-wrapper" ng-click="lfmAction()">
+                        <b ng-if="user.lastFMToggle">[ </b>
                         <span>Last.FM</span>
+                        <b ng-if="user.lastFMToggle"> ]</b>
                     </div>
                     <div class="span-wrapper">
                         <span>
@@ -63,7 +65,7 @@
             </div>
             <div class="panels">
                 <ul class="col-3 playlists music-container"
-                    ui-sortable
+                    ui-sortable="sortablePlaylists"
                     ng-model="user.playlists">
                         <li class="item"
                         ng-click="setPlaylist(item)"
@@ -78,7 +80,7 @@
                     </li>
                 </ul>
                 <ul class="col-6 songs music-container"
-                    ui-sortable
+                    ui-sortable="sortableSongs"
                     ng-model="music.currentPlaylistSongs">
                     <li class="item"
                         ng-click="setSong(item)"
@@ -128,7 +130,17 @@
                             <span>Copy songs</span>
                         </div>
                     </div>
-                    <div class="queue"></div>
+                    <div class="queue">
+                        <div class="item queue-item" ng-repeat="(key, value) in queue">
+                            <span class="title cut">
+                                {{value.title}}
+                            </span>
+                            <span class="percentage" ng-if="!value.finished">{{value.percentage}}%</span>
+                            <span class="percentage" ng-if="value.finished">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="footer">
@@ -143,7 +155,7 @@
         <div class="auth" ng-if="!user && !loading">
             <form>
                 <div class="form-group">
-                    <input type="text"
+                    <input type="text" autofocus
                            class="form-control"
                            placeholder="Username"
                            ng-keyup="$event.keyCode == 13 && authPost()"
@@ -173,7 +185,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <input type="text"
+                            <input autofocus type="text"
                                    class="form-control"
                                    placeholder="Name"
                                    ng-model="music.newPlaylistName">
@@ -198,7 +210,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <input type="text"
+                            <input type="text" autofocus
                                    class="form-control"
                                    placeholder="Name"
                                    ng-model="music.renamePlaylistName">
@@ -223,7 +235,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <input type="text"
+                            <input type="text" autofocus
                                    class="form-control"
                                    placeholder="Name"
                                    ng-model="music.renameSongTitle">
@@ -248,7 +260,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <input type="text"
+                            <input type="text" autofocus
                                    class="form-control"
                                    placeholder="Youtube video link"
                                    ng-model="music.newSongYoutubeLink">
@@ -399,6 +411,7 @@
         <script src="/node_modules/angular-ui-notification/dist/angular-ui-notification.min.js"></script>
         <script src="/node_modules/ng-media-events/src/ng-media-events.js"></script>
         <script src="/node_modules/angular-ui-sortable/src/sortable.js"></script>
+        <script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
         <!--JS-->
         <script src="app/directive.js"></script>
         <script src="app/service.js"></script>
