@@ -24,7 +24,7 @@ const downloader = function () {
 
     this.YD.on("error", (err, data) => {
         console.error(err);
-        if (this.queue[data.videoId]) {
+        if (data && this.queue[data.videoId]) {
             this.queue[data.videoId].cb(err, data);
         } else {
             console.log("Error: No callback for videoId!");
