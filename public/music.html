@@ -9,7 +9,7 @@
     </head>
     <body ng-cloak class="ng-cloak">
         <input id="newSongDisk" multiple file-model="music.newSongFile" type="file" accept="audio/*"/>
-        <audio id="audio" ng-timeupdate="updateTime()"></audio>
+        <audio id="audio" ng-timeupdate="updateTime()" onended="angular.element(this).scope().next()"></audio>
         <div ng-if="loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
         <div class="music" ng-if="user">
             <div class="player">

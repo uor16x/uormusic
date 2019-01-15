@@ -444,7 +444,7 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
         $scope.music.durationTime = $scope.music.audio.duration ?
             $scope.convertTime($scope.music.audio.duration) :
             $scope.music.durationTime;
-    }
+    };
 
     /**
      * Checkers
