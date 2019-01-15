@@ -142,9 +142,9 @@ function configureApp(app) {
                 global.sockets[socket.id] = undefined;
             });
         });
-        httpServer.listen(80);
+        httpServer.listen(app.env.PORT);
         const httpsServer = require('https').createServer(credentials, app);
-        httpsServer.listen(443);
+        httpsServer.listen(app.env.SSL_PORT);
     }
 
 }
