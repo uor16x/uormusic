@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const lastfmapi = require('lastfmapi');
 const uuid = require('node-uuid');
 
@@ -111,16 +112,39 @@ function configureApp(app) {
         }
     }
     app.services = require('./service')(app);
-    const server = require('http').Server(app);
-    const io = require('socket.io')(server);
-    io.on('connection', function (socket) {
-        global.sockets[socket.id] = socket;
-        socket.on('disconnect', () => {
-            global.sockets[socket.id] = undefined;
+
+    if (app.env.MODE === 'dev') {
+        const server = require('http').Server(app);
+        const io = require('socket.io')(server);
+        io.on('connection', function (socket) {
+            global.sockets[socket.id] = socket;
+            socket.on('disconnect', () => {
+                global.sockets[socket.id] = undefined;
+            });
         });
-    });
-    server.listen(app.env.PORT, () => {
-        console.log('Server started');
-    });
+        server.listen(app.env.PORT, () => {
+            console.log('Server started');
+        });
+    } else {
+        const privateKey = fs.readFileSync('/etc/letsencrypt/live/mymusiclib.com.ua/privkey.pem', 'utf8');
+        const certificate = fs.readFileSync('/etc/letsencrypt/live/mymusiclib.com.ua/cert.pem', 'utf8');
+        const ca = fs.readFileSync('/etc/letsencrypt/live/mymusiclib.com.ua/chain.pem', 'utf8');
+        const credentials = {
+            key: privateKey,
+            cert: certificate,
+            ca: ca
+        };
+        const httpServer = http.createServer(app);
+        const io = require('socket.io')(httpServer);
+        io.on('connection', function (socket) {
+            global.sockets[socket.id] = socket;
+            socket.on('disconnect', () => {
+                global.sockets[socket.id] = undefined;
+            });
+        });
+        const httpsServer = https.createServer(credentials, app);
+        httpsServer.listen(443);
+    }
+
 }
 
