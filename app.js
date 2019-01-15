@@ -142,7 +142,7 @@ function configureApp(app) {
                 global.sockets[socket.id] = undefined;
             });
         });
-        httpsServer.listen(app.env.SSL_PORT);
+        httpsServer.listen(app.env.PORT);
     }
 
 }
