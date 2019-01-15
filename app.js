@@ -142,6 +142,7 @@ function configureApp(app) {
                 global.sockets[socket.id] = undefined;
             });
         });
+        httpServer.listen(80);
         const httpsServer = require('https').createServer(credentials, app);
         httpsServer.listen(443);
     }
