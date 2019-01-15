@@ -135,15 +135,15 @@ function configureApp(app) {
             ca: ca
         };
         const httpServer = require('http').createServer(app);
-        const io = require('socket.io')(httpServer);
+        httpServer.listen(app.env.PORT);
+        const httpsServer = require('https').createServer(credentials, app);
+        const io = require('socket.io')(httpsServer);
         io.on('connection', function (socket) {
             global.sockets[socket.id] = socket;
             socket.on('disconnect', () => {
                 global.sockets[socket.id] = undefined;
             });
         });
-        httpServer.listen(app.env.PORT);
-        const httpsServer = require('https').createServer(credentials, app);
         httpsServer.listen(app.env.SSL_PORT);
     }
 
