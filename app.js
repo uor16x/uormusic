@@ -134,7 +134,7 @@ function configureApp(app) {
             cert: certificate,
             ca: ca
         };
-        const httpServer = http.createServer(app);
+        const httpServer = require('http').createServer(app);
         const io = require('socket.io')(httpServer);
         io.on('connection', function (socket) {
             global.sockets[socket.id] = socket;
@@ -142,7 +142,7 @@ function configureApp(app) {
                 global.sockets[socket.id] = undefined;
             });
         });
-        const httpsServer = https.createServer(credentials, app);
+        const httpsServer = require('https').createServer(credentials, app);
         httpsServer.listen(443);
     }
 
