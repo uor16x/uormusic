@@ -134,8 +134,6 @@ function configureApp(app) {
             cert: certificate,
             ca: ca
         };
-        const httpServer = require('http').createServer(app);
-        httpServer.listen(app.env.PORT);
         const httpsServer = require('https').createServer(credentials, app);
         const io = require('socket.io')(httpsServer);
         io.on('connection', function (socket) {
