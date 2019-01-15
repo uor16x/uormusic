@@ -2,7 +2,7 @@ const myMusic = angular.module('mymusic', ['ui-notification', 'ngMedia', 'ui.sor
 
 myMusic
     .factory('socket', function ($rootScope) {
-        const socket = io.connect();
+        const socket = io.connect({secure: true});
         return {
             on: function (eventName, callback) {
                 socket.on(eventName, function () {
