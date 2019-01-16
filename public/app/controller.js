@@ -375,7 +375,7 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
             .findIndex(song => song._id === $scope.music.currentSongId);
         if ($scope.music.repeat && !manual) {
             return $scope.setSong(
-                $scope.music.currentPlayingPlaylistSongs.songs[songIndex],
+                $scope.music.currentPlayingPlaylistSongs[songIndex],
                 $scope.music.currentPlayingPlaylistId,
                 $scope.music.currentPlayingPlaylistName,
                 $scope.music.currentPlayingPlaylistSongs
