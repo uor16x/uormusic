@@ -591,7 +591,7 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
 
     $scope.backgroundAction = () => {
         if (!$scope.user.background) {
-            return Notification.info('Upload backround first (double-click)');
+            return Notification.info('Upload background first (double-click)');
         }
         return $scope.backgroundToggle();
     };
