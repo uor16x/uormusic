@@ -77,7 +77,10 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
         currentSongTitle: '',
 
         backgroundFile: null,
-        backgroundInput: $('#backgroundInput')
+        backgroundInput: $('#backgroundInput'),
+
+        youtubeLinks: [''],
+        addFromYTMode: false,
     };
     $scope.sortablePlaylists = {
         stop: () => {
@@ -305,22 +308,26 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
     };
 
     $scope.addSongYoutube = () => {
-        const link = $scope.music.newSongYoutubeLink;
         $scope.modals.addSong.modal('hide');
         const currPlist = $scope.music.currentPlaylistId;
-        MusicService.uploadSongYT(currPlist, link, socket.getId())
-            .then(response => {
-                if (response.data) {
-                    Notification.info('Upload finished')
-                }
-                if (response.data && currPlist === $scope.music.currentPlaylistId) {
-                    $scope.music.currentPlaylistSongs.unshift(response.data);
-                }
-            })
-            .catch(err => {
-                return Notification.error(err.data);
-            });
-        $scope.music.newSongYoutubeLink = '';
+        const links = $scope.music.youtubeLinks;
+        const socketId = socket.getId();
+        links.forEach(link => {
+            MusicService.uploadSongYT(currPlist, link, socketId)
+                .then(response => {
+                    if (response.data) {
+                        Notification.info('Upload finished')
+                    }
+                    if (response.data && currPlist === $scope.music.currentPlaylistId) {
+                        $scope.music.currentPlaylistSongs.unshift(response.data);
+                    }
+                })
+                .catch(err => {
+                    return Notification.error(err.data);
+                });
+        });
+        $scope.music.addFromYTMode = false;
+        $scope.music.youtubeLinks = [''];
     };
 
     $scope.selectFile = () => {
@@ -622,5 +629,27 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
             })
             .catch(err => Notification.info(err.data));
     };
+
+    $scope.downloadSong = () => {
+        const link = document.createElement('a');
+        link.download = `${$scope.music.currentSongTitle}.mp3`;
+        link.href = `/song/${$scope.music.currentSongId}`;
+        link.click();
+    };
+
+    $scope.checkYTButtonDisabled = () => {
+        return $scope.music.youtubeLinks.filter(item => item === '').length > 0;
+    };
+
+    $scope.addYTRow = () => {
+        if ($scope.music.youtubeLinks.length > 30) {
+            return Notification.info('Max 30 rows');
+        }
+        $scope.music.youtubeLinks.push('');
+    };
+
+    $scope.removeYTRow = index => {
+        $scope.music.youtubeLinks.splice(index, 1);
+    }
 
 }

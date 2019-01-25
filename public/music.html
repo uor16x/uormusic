@@ -123,6 +123,11 @@
                             <span>Add songs</span>
                         </div>
                         <div class="item"
+                             ng-click="downloadSong()"
+                             ng-if="showSongActions()">
+                            <span>Download song</span>
+                        </div>
+                        <div class="item"
                              ng-click="renameSongModalShow()"
                              ng-if="showSongActions()">
                             <span>Rename song</span>
@@ -265,30 +270,52 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addSongLabel">Add song</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <h5 class="modal-title" id="addSongLabel">Add songs</h5>
+                        <button type="button" class="close"
+                                ng-click="music.addFromYTMode=false;music.youtubeLinks=['']"
+                                data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <input type="text" autofocus
-                                   class="form-control"
-                                   placeholder="Youtube video link"
-                                   ng-model="music.newSongYoutubeLink">
+                    <div class="modal-body add-songs-body">
+                        <div class="form-group yt-link-rows" ng-if="music.addFromYTMode">
+                            <div class="yt-link-row" ng-repeat="item in music.youtubeLinks track by $index">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Youtube video link"
+                                       ng-model="music.youtubeLinks[$index]">
+                                <button ng-if="music.youtubeLinks.length > 1" type="button" class="close">
+                                    <span ng-click="removeYTRow($index)">&times;</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                                ng-click="music.addFromYTMode=false;music.youtubeLinks=['']">Close</button>
                         <button type="button"
+                                ng-if="music.addFromYTMode"
                                 class="btn btn-primary"
-                                ng-class="{'disabled': !music.newSongYoutubeLink}"
-                                ng-click="music.newSongYoutubeLink && addSongYoutube()">
+                                ng-click="addYTRow()">
+                            Add link
+                        </button>
+                        <button type="button"
+                                ng-if="music.addFromYTMode"
+                                class="btn btn-primary"
+                                ng-class="{'disabled': checkYTButtonDisabled()}"
+                                ng-click="addSongYoutube()">
+                            Upload
+                        </button>
+                        <button type="button"
+                                ng-if="!music.addFromYTMode"
+                                class="btn btn-primary"
+                                ng-click="music.addFromYTMode = true"
+                        >
                             Add from YouTube
                         </button>
-                        <span>or</span>
                         <button type="button"
                                 class="btn btn-primary"
+                                ng-if="!music.addFromYTMode"
                                 ng-click="selectFile()">
                             Add from Disk
                         </button>
