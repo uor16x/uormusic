@@ -36,6 +36,9 @@ module.exports = app => {
             const dl = new yt();
             dl.getMP3(videoId, req.body.socketId, async (err, data) => {
                 if (err) {
+                    global.sockets[req.body.socketId].emit('progress:fail', {
+                        videoId: videoInfo.videoId
+                    });
                     return res.result('Error download video');
                 }
                 const fileObject = new app.models.file({

@@ -1,6 +1,29 @@
 const myMusic = angular.module('mymusic', ['ui-notification', 'ngMedia', 'ui.sortable']);
 
 myMusic
+    .directive('sglclick', ['$parse', function($parse) {
+        return {
+            restrict: 'A',
+            link: function(scope, element, attr) {
+                let fn = $parse(attr['sglclick']);
+                let delay = 300, clicks = 0, timer = null;
+                element.on('click', function (event) {
+                    clicks++;
+                    if(clicks === 1) {
+                        timer = setTimeout(function() {
+                            scope.$apply(function () {
+                                fn(scope, { $event: event });
+                            });
+                            clicks = 0;
+                        }, delay);
+                    } else {
+                        clearTimeout(timer);
+                        clicks = 0;
+                    }
+                });
+            }
+        };
+    }])
     .factory('socket', function ($rootScope) {
         const socket = io.connect({secure: true});
         return {

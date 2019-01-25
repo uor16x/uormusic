@@ -9,7 +9,9 @@ const userSchema = mongoose.Schema({
     }],
     lastFMUsername: String,
     lastFMKey: String,
-    lastFMToggle: Boolean
+    lastFMToggle: Boolean,
+    background: String,
+    backgroundToggle: Boolean
 });
 
 module.exports = mongoose.model('User', userSchema);

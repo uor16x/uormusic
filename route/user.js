@@ -1,6 +1,40 @@
 const router = require('express').Router();
+const path = require('path');
 
 module.exports = app => {
+
+    /**
+     * Get background
+     */
+    router.get('/background/:file', async (req, res) => {
+        if (!req.params.file) {
+            return res.result('Missing file');
+        }
+        const filePath = path.resolve(`./store/${req.params.file}`);
+        return res.sendFile(filePath);
+    });
+
+    router.put('/background', async (req, res) => {
+        const currUser = await app.services.user.get({
+            _id: req.session.user._id
+        });
+        currUser.backgroundToggle = !currUser.backgroundToggle;
+        await currUser.save();
+        return res.result(null);
+    });
+
+    router.post('/background', app.upload.single('background'), async (req, res) => {
+        if (!req.file) {
+            return res.result('Error uploading file');
+        }
+        const currUser = await app.services.user.get({
+            _id: req.session.user._id
+        });
+        currUser.background = req.file.filename;
+        currUser.backgroundToggle = true;
+        await currUser.save();
+        return res.result(null);
+    });
 
     /**
      * Get user

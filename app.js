@@ -60,7 +60,10 @@ function configureApp(app) {
             cb(null, path.join('./store/'))
         },
         filename: (req, file, cb) => {
-            cb(null, uuid.v4())
+            cb(null,
+                `${uuid.v4()}${file.mimetype.indexOf('image') > -1 ?
+                    file.originalname.substr(file.originalname.length - 4):
+                    ''}`)
         }
     });
     app.upload = multer({storage: storage});

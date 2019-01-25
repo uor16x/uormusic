@@ -1,7 +1,7 @@
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important;
 }
-#newSongDisk {
+.hidden-inputs {
   width: 0;
   height: 0;
   position: absolute;
@@ -40,7 +40,7 @@ body {
   overflow-x: hidden;
   overflow-y: hidden;
 
-  background: url(wallp.png) no-repeat center center fixed;
+  //background: url(wallp.png) no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -195,7 +195,7 @@ $footer-height: 25px;
       }
 
       span, .span-wrapper {
-        min-width: 100px;
+        min-width: 110px;
         text-align: center;
 
       }

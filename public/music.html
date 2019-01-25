@@ -1,14 +1,16 @@
 <html ng-app="mymusic" ng-controller="MainController">
     <head>
-        <title ng-cloak>{{music.currentSongTitle || 'MyMusic'}}</title>
+        <title ng-cloak>MyMusic</title>
+        <title ng-cloak ng-if="music.currentSongTitle">{{music.currentSongTitle}}</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
         <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
         <link rel="stylesheet" href="/node_modules/jquery-ui-dist/jquery-ui.min.css"/>
         <link rel="stylesheet" href="/node_modules/angular-ui-notification/dist/angular-ui-notification.min.css"/>
         <link rel="stylesheet" href="style.css"/>
     </head>
-    <body ng-cloak class="ng-cloak">
-        <input id="newSongDisk" multiple file-model="music.newSongFile" type="file" accept="audio/*"/>
+    <body ng-cloak class="ng-cloak" ng-style="{'background': getWallp() }">
+        <input class="hidden-inputs" id="newSongDisk" multiple file-model="music.newSongFile" type="file" accept="audio/*"/>
+        <input class="hidden-inputs" id="backgroundInput" file-model="music.backgroundFile" type="file" accept="image/*"/>
         <audio id="audio" ng-timeupdate="updateTime()" onended="angular.element(this).scope().next()"></audio>
         <div ng-if="loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
         <div class="music" ng-if="user">
@@ -27,7 +29,7 @@
                         <i class="fas fa-forward"></i>
                     </div>
                 </div>
-                <div class="col-8 songtitle">
+                <div class="col-7 songtitle">
                     <div class="time" ng-if="music.currentSongId">
                         <span>{{music.currentTime}}</span>
                         <span>/</span>
@@ -39,13 +41,20 @@
                         {{music.currentSongTitle}}
                     </marquee>
                 </div>
-                <div class="col-3 extra">
+                <div class="col-4 extra">
                     <div class="span-wrapper" ng-click="music.repeat = !music.repeat">
                         <span>
                             <b ng-if="music.repeat">[ </b>
                             Repeat
                             <b ng-if="music.repeat"> ]</b>
                         </span>
+                    </div>
+                    <div class="span-wrapper"
+                         data-toggle="tooltip" title="Double-click to upload"
+                         sglclick="backgroundAction()" ng-dblclick="backgroundUpload()">
+                        <b ng-if="user.backgroundToggle">[ </b>
+                        <span>Background</span>
+                        <b ng-if="user.backgroundToggle"> ]</b>
                     </div>
                     <div class="span-wrapper" ng-click="lfmAction()">
                         <b ng-if="user.lastFMToggle">[ </b>
@@ -138,6 +147,9 @@
                             <span class="percentage" ng-if="!value.finished">{{value.percentage}}%</span>
                             <span class="percentage" ng-if="value.finished">
                                 <i class="fas fa-check"></i>
+                            </span>
+                            <span class="percentage" ng-if="value.failed">
+                                <i class="fas fa-times"></i>
                             </span>
                         </div>
                     </div>

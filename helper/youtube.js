@@ -48,6 +48,12 @@ const downloader = function () {
     this.YD.on("error", (err, data) => {
         console.error(err + " on videoId " + data.videoId);
         if (this.queue[data.videoId]) {
+            const socket = global.sockets[this.queue[data.videoId].socketId];
+            if (socket) {
+                socket.emit('progress:fail', {
+                    videoId: data.videoId
+                });
+            }
             this.queue[data.videoId].cb(err, data);
         } else {
             console.log("Error: No callback for videoId!");

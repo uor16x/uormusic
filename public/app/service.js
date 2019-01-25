@@ -17,6 +17,23 @@ function AuthService($http) {
     this.authDelete = function () {
         return $http.delete('/user');
     };
+
+    this.uploadBackground = function (file) {
+        const formData = new FormData();
+        formData.append("background", file, file.name);
+
+        return $http({
+            url: `/user/background`,
+            method: 'POST',
+            data: formData,
+            headers: { 'Content-Type': undefined},
+            transformRequest: angular.identity
+        });
+        // return $http.post(`/song/${playlistId}`, formData);
+    };
+    this.toggleBackground = function () {
+        return $http.put('/user/background');
+    };
 }
 
 function MusicService($http) {

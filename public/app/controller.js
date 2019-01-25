@@ -10,6 +10,12 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
             percentage: 0
         };
     });
+    socket.on('progress:fail', function (data) {
+        $scope.queue[data.videoId].failed = true;
+        setTimeout(() => {
+            delete $scope.queue[data.videoId];
+        }, 1500);
+    });
     socket.on('progress:update', function (data) {
         $scope.queue[data.videoId].percentage = Math.floor(data.progress);
     });
@@ -68,7 +74,10 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
         currentPlayingPlaylistSongs: [],
 
         currentSongId: null,
-        currentSongTitle: ''
+        currentSongTitle: '',
+
+        backgroundFile: null,
+        backgroundInput: $('#backgroundInput')
     };
     $scope.sortablePlaylists = {
         stop: () => {
@@ -569,6 +578,49 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
             MusicService.scrobble(id)
                 .catch(err => Notification.error(err.data));
         }
+    };
+
+    /**
+     * Other
+     */
+    $scope.getWallp = () => {
+        return $scope.user && $scope.user.backgroundToggle && $scope.user.background ?
+            `url(${`/user/background/${$scope.user.background}`}) no-repeat center center fixed` :
+            'url(wallp.png) no-repeat center center fixed';
+    };
+
+    $scope.backgroundAction = () => {
+        if (!$scope.user.background) {
+            return Notification.info('Upload backround first (double-click)');
+        }
+        return $scope.backgroundToggle();
+    };
+
+    $scope.backgroundUpload = () => {
+        const stopWatch = $scope.$watch('music.backgroundFile', () => {
+            if ($scope.music.backgroundFile && $scope.music.backgroundFile.length > 0) {
+                stopWatch();
+                $scope.loading = true;
+                AuthService.uploadBackground($scope.music.backgroundFile[0])
+                    .then(response => {
+                        $scope.authGet();
+                    })
+                    .catch(err => Notification.info(err.data))
+                    .finally(() => {
+                        $scope.music.backgroundFile = null;
+                        $scope.loading = false;
+                    })
+            }
+        });
+        $scope.music.backgroundInput.click();
+    };
+
+    $scope.backgroundToggle = () => {
+        AuthService.toggleBackground()
+            .then(response => {
+                $scope.user.backgroundToggle = !$scope.user.backgroundToggle;
+            })
+            .catch(err => Notification.info(err.data));
     };
 
 }
