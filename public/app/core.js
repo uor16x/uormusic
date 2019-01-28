@@ -24,6 +24,17 @@ myMusic
             }
         };
     }])
+    .factory('debounce', function($timeout) {
+        return function(callback, interval) {
+            let timeout = null;
+            return function() {
+                $timeout.cancel(timeout);
+                timeout = $timeout(function () {
+                    callback.apply(this, arguments);
+                }, interval);
+            };
+        };
+    })
     .factory('socket', function ($rootScope) {
         const socket = io.connect({secure: true});
         return {
@@ -51,7 +62,7 @@ myMusic
     .config(function(NotificationProvider) {
         NotificationProvider.setOptions({
             delay: 5000,
-            startTop: 20,
+            startTop: 40,
             startRight: 10,
             verticalSpacing: 10,
             horizontalSpacing: 10,

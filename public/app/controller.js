@@ -1,4 +1,4 @@
-function MainController($scope, AuthService, MusicService, Notification, socket) {
+function MainController($scope, $location, $anchorScroll, debounce, AuthService, MusicService, Notification, socket) {
     $('.modal').on('shown.bs.modal', function() {
         $(this).find('[autofocus]').focus();
     });
@@ -51,6 +51,7 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
     $scope.music = {
         playing: false,
         repeat: false,
+        random: false,
         scrobbled: false,
         audio: $('#audio')[0],
 
@@ -74,7 +75,7 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
         currentPlayingPlaylistSongs: [],
 
         currentSongId: null,
-        currentSongTitle: '',
+        currentSongTitle: 'MyMusic',
 
         backgroundFile: null,
         backgroundInput: $('#backgroundInput'),
@@ -117,6 +118,9 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
             });
     };
     $scope.authGet();
+    $scope.$watch('music.currentSongId', debounce(function() {
+        $scope.scrollToSong($scope.music.currentSongId);
+    }, 300), true);
 
     $scope.authPost = function () {
         if (!$scope.authData.username) {
@@ -277,6 +281,21 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
         $scope.music.renameSongTitle = '';
     };
 
+    $scope.scrollToSong = id => {
+        let offset = id ? angular.element(`#song-${id}`) &&
+            angular.element(`#song-${id}`)[0] &&
+            angular.element(`#song-${id}`)[0].offsetTop &&
+            angular.element(`#song-${id}`)[0].offsetTop - 6 : -6;
+        if (offset) {
+            console.log(offset);
+            angular.element('#songs-container').animate({
+                scrollTop: offset
+            }, 600);
+        } else if (id) {
+            setTimeout(() => $scope.scrollToSong(id), 100);
+        }
+    };
+
     $scope.setPlaylist = item => {
         $scope.loading = true;
         $scope.music.currentPlaylistId = item._id;
@@ -285,6 +304,11 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
             .then(response => {
                 if (response.data) {
                     $scope.music.currentPlaylistSongs = response.data;
+                    if ($scope.music.currentPlayingPlaylistId === item._id) {
+                        $scope.scrollToSong($scope.music.currentSongId);
+                    } else {
+                        $scope.scrollToSong();
+                    }
                 }
             })
             .catch(err => Notification.info(err.data))
@@ -383,12 +407,29 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
         }
     };
 
+    $scope.getRandomSongIndex = currIndex => {
+        let result = currIndex;
+        while (result === currIndex) {
+            result = Math.floor(Math.random() * $scope.music.currentPlayingPlaylistSongs.length);
+        }
+        return result;
+    };
+
     $scope.next = manual => {
         if (!$scope.music.currentSongId) {
             return;
         }
         const songIndex = $scope.music.currentPlayingPlaylistSongs
             .findIndex(song => song._id === $scope.music.currentSongId);
+        if ($scope.music.random) {
+            let randomIndex = $scope.getRandomSongIndex(songIndex);
+            return $scope.setSong(
+                $scope.music.currentPlayingPlaylistSongs[randomIndex],
+                $scope.music.currentPlayingPlaylistId,
+                $scope.music.currentPlayingPlaylistName,
+                $scope.music.currentPlayingPlaylistSongs
+            );
+        }
         if ($scope.music.repeat && !manual) {
             return $scope.setSong(
                 $scope.music.currentPlayingPlaylistSongs[songIndex],
@@ -419,6 +460,15 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
         let newIndex;
         const songIndex = $scope.music.currentPlayingPlaylistSongs
             .findIndex(song => song._id === $scope.music.currentSongId);
+        if ($scope.music.random) {
+            let randomIndex = $scope.getRandomSongIndex(songIndex);
+            return $scope.setSong(
+                $scope.music.currentPlayingPlaylistSongs[randomIndex],
+                $scope.music.currentPlayingPlaylistId,
+                $scope.music.currentPlayingPlaylistName,
+                $scope.music.currentPlayingPlaylistSongs
+            );
+        }
         newIndex = songIndex - 1;
         if (newIndex < 0) {
             newIndex = 0;
@@ -432,9 +482,18 @@ function MainController($scope, AuthService, MusicService, Notification, socket)
     };
 
     $scope.footerPlaylistLink = () => {
-        if ($scope.music.currentPlayingPlaylistId === $scope.music.currentPlaylistId) {
-            Notification.info('Playlist already selected');
+        if ($scope.music.currentPlaylistId !== $scope.music.currentPlayingPlaylistId) {
+            $scope.setPlaylist({
+                _id: $scope.music.currentPlayingPlaylistId,
+                name: $scope.music.currentPlayingPlaylistName,
+            });
         } else {
+            $scope.scrollToSong($scope.music.currentSongId);
+        }
+    };
+
+    $scope.footerSongLink = () => {
+        if ($scope.music.currentPlayingPlaylistId !== $scope.music.currentPlaylistId) {
             $scope.setPlaylist({
                 _id: $scope.music.currentPlayingPlaylistId,
                 name: $scope.music.currentPlayingPlaylistName,

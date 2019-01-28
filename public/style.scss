@@ -331,12 +331,24 @@ $footer-height: 25px;
     display: flex;
     flex-direction: row;
     align-self: center;
+    justify-content: space-between;
     background-color: $main;
     height: $footer-height;
     width: calc(100% - 12px);
     border-radius: 5px;
     padding: 3px 3px 3px 10px;
     color: $controls;
+
+    .extra-controls {
+      display: flex;
+      flex-direction: row;
+      justify-self: right;
+      .span-wrapper {
+        cursor: pointer;
+        width: 90px;
+        text-align: center;
+      }
+    }
 
     .playlistname {
       &:hover {
