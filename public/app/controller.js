@@ -651,8 +651,8 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
      */
     $scope.getWallp = () => {
         return $scope.user && $scope.user.backgroundToggle && $scope.user.background ?
-            `url(${`/user/background/${$scope.user.background}`}) no-repeat center center fixed` :
-            'url(wallp.png) no-repeat center center fixed';
+            `url(${`/user/background/${$scope.user.background}`})` :
+            'url(wallp.png)';
     };
 
     $scope.backgroundAction = () => {

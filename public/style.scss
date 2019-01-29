@@ -38,6 +38,16 @@
 }
 
 body {
+  background-position-x: center;
+  background-position-y: center;
+  background-size: initial;
+  background-repeat-x: no-repeat;
+  background-repeat-y: no-repeat;
+  background-attachment: fixed;
+  background-origin: initial;
+  background-clip: initial;
+  background-color: initial;
+
   // scrollbar
   /* width */
   ::-webkit-scrollbar {

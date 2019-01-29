@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="/node_modules/angular-ui-notification/dist/angular-ui-notification.min.css"/>
         <link rel="stylesheet" href="style.css"/>
     </head>
-    <body ng-cloak class="ng-cloak" ng-style="{'background': getWallp() }">
+    <body ng-cloak class="ng-cloak" ng-style="{'background-image': getWallp() }">
         <input class="hidden-inputs" id="newSongDisk" multiple file-model="music.newSongFile" type="file" accept="audio/*"/>
         <input class="hidden-inputs" id="backgroundInput" file-model="music.backgroundFile" type="file" accept="image/*"/>
         <audio id="audio" ng-timeupdate="updateTime()" onended="angular.element(this).scope().next()"></audio>
