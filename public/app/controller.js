@@ -41,8 +41,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     };
     $scope.modals = {
         addPlaylist: $('#addPlaylistModal').modal(initModalOptions),
-        removePlaylist: $('#removePlaylistModal').modal(initModalOptions),
-        removeSong: $('#removeSongModal').modal(initModalOptions),
         addSong: $('#addSongModal').modal(initModalOptions),
         renamePlaylist: $('#renamePlaylistModal').modal(initModalOptions),
         renameSong: $('#renameSongModal').modal(initModalOptions),
@@ -63,8 +61,9 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         newSongFile: null,
         newSongInput: $('#newSongDisk'),
 
-        renamePlaylistName: '',
-        renameSongTitle: '',
+        renamePlaylist: null,
+        renameSong: null,
+        addSongsDest: null,
 
         currentPlaylistName: '',
         currentPlaylistId: null,
@@ -198,12 +197,13 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
                         if (currPlaying) {
                             $scope.pause();
                             $scope.music.currentSongId = null;
-                            $scope.music.currentSongTitle = '';
+                            $scope.music.currentSongTitle = 'MyMusic';
                             $scope.music.audio.src = '';
                             $scope.music.currentPlayingPlaylistId = null;
                             $scope.music.currentPlayingPlaylistName = '';
                             $scope.music.currentPlayingPlaylistSongs = [];
                         }
+                        Notification.success('Successfully removed');
                     }
                 })
                 .catch(err => Notification.error(err.data));
@@ -232,11 +232,11 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     };
 
     $scope.renamePlaylist = () => {
-        const name = $scope.music.renamePlaylistName;
+        const name = $scope.music.renamePlaylist.name;
         if (!name) {
             return Notification.info('Playlist name missing');
         }
-        const plistId = $scope.music.currentPlaylistId;
+        const plistId = $scope.music.renamePlaylist._id;
         $scope.modals.renamePlaylist.modal('hide');
         MusicService.renamePlaylist(plistId, name)
             .then(response => {
@@ -255,26 +255,19 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     };
 
     $scope.renameSong = () => {
-        const title = $scope.music.renameSongTitle;
+        const title = $scope.music.renameSong.title;
         if (!title) {
-            return Notification.info('Playlist name missing');
+            return Notification.info('Song title missing');
         }
-        const songId = $scope.music.currentSongId;
-        const currentPlaylistId = $scope.music.currentPlayingPlaylistId;
+        const songId = $scope.music.renameSong._id;
         $scope.modals.renameSong.modal('hide');
-        MusicService.renameSong(songId, $scope.music.renameSongTitle)
+        MusicService.renameSong(songId, title)
             .then(response => {
                 if ($scope.music.currentSongId === songId) {
                     $scope.music.currentSongTitle = title;
                 }
-                if ($scope.music.currentPlaylistId === currentPlaylistId) {
-                    const index = $scope.music.currentPlaylistSongs.findIndex(s => s._id === songId);
-                    $scope.music.currentPlaylistSongs[index].title = title;
-                }
-                if ($scope.music.currentPlayingPlaylistId === currentPlaylistId) {
-                    const index = $scope.music.currentPlayingPlaylistSongs.findIndex(s => s._id === songId);
-                    $scope.music.currentPlayingPlaylistSongs[index].title = title;
-                }
+                const index = $scope.music.currentPlaylistSongs.findIndex(s => s._id === songId);
+                $scope.music.currentPlaylistSongs[index].title = title;
                 Notification.success('Successfully renamed song');
             })
             .catch(err => Notification.info(err.data));
@@ -317,23 +310,26 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
             });
     };
 
-    $scope.addSongModalShow = () => {
+    $scope.addSongModalShow = (item) => {
+        $scope.music.addSongsDest = {
+            ...item
+        };
         return $scope.music.currentPlaylistId ? $scope.modals.addSong.modal('show') : Notification.info('Select playlist first');
     };
 
-    $scope.renamePlaylistModalShow = () => {
-        $scope.music.renamePlaylistName = $scope.music.currentPlaylistName;
+    $scope.renamePlaylistModalShow = (item) => {
+        $scope.music.renamePlaylist = {...item};
         $scope.modals.renamePlaylist.modal('show');
     };
 
-    $scope.renameSongModalShow = () => {
-        $scope.music.renameSongTitle = $scope.music.currentSongTitle;
+    $scope.renameSongModalShow = (item) => {
+        $scope.music.renameSong = {...item};
         $scope.modals.renameSong.modal('show');
     };
 
     $scope.addSongYoutube = () => {
         $scope.modals.addSong.modal('hide');
-        const currPlist = $scope.music.currentPlaylistId;
+        const currPlist = $scope.music.addSongsDest._id;
         const links = $scope.music.youtubeLinks;
         const socketId = socket.getId();
         links.forEach(link => {
@@ -358,7 +354,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         const stopWatch = $scope.$watch('music.newSongFile', () => {
             if ($scope.music.newSongFile) {
                 stopWatch();
-                const currPlist = $scope.music.currentPlaylistId;
+                const currPlist = $scope.music.addSongsDest._id;
                 $scope.modals.addSong.modal('hide');
                 $scope.loading = true;
                 Notification.info('Upload started...');
@@ -689,10 +685,10 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
             .catch(err => Notification.info(err.data));
     };
 
-    $scope.downloadSong = () => {
+    $scope.downloadSong = (item) => {
         const link = document.createElement('a');
-        link.download = `${$scope.music.currentSongTitle}.mp3`;
-        link.href = `/song/${$scope.music.currentSongId}`;
+        link.download = `${item ? item.title : $scope.music.currentSongTitle}.mp3`;
+        link.href = `/song/${item ? item._id : $scope.music.currentSongId}`;
         link.click();
     };
 
@@ -710,5 +706,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     $scope.removeYTRow = index => {
         $scope.music.youtubeLinks.splice(index, 1);
     }
+
+    $scope.getKeysLength = obj => Object.keys(obj).length;
 
 }

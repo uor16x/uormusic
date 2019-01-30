@@ -2,6 +2,8 @@
     <head>
         <title ng-bind="music.currentSongTitle">MyMusic</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css?family=Alegreya+Sans+SC" rel="stylesheet">
+
         <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
         <link rel="stylesheet" href="/node_modules/jquery-ui-dist/jquery-ui.min.css"/>
         <link rel="stylesheet" href="/node_modules/angular-ui-notification/dist/angular-ui-notification.min.css"/>
@@ -16,19 +18,19 @@
             <div class="player">
                 <div class="col-1 controls">
                     <div ng-click="prev()">
-                        <i class="fas fa-backward"></i>
+                        <i data-feather="skip-back"></i>
                     </div>
                     <div ng-if="!music.playing" ng-click="play()">
-                        <i class="fas fa-play"></i>
+                        <i data-feather="play"></i>
                     </div>
                     <div ng-if="music.playing" ng-click="pause()">
-                        <i class="fas fa-pause"></i>
+                        <i data-feather="pause"></i>
                     </div>
                     <div ng-click="next(true)">
-                        <i class="fas fa-forward"></i>
+                        <i data-feather="skip-forward"></i>
                     </div>
                 </div>
-                <div class="col-8 songtitle">
+                <div class="songtitle">
                     <div class="time" ng-if="music.currentSongId">
                         <span>{{music.currentTime}}</span>
                         <span>/</span>
@@ -40,28 +42,42 @@
                         {{music.currentSongTitle}}
                     </marquee>
                 </div>
-                <div class="col-3 extra">
+                <div class="extra" ng-class="{'col-1': !music.currentSongId, 'col-2': music.currentSongId}">
                     <div class="span-wrapper"
-                         data-toggle="tooltip" title="Double-click to upload"
-                         sglclick="backgroundAction()" ng-dblclick="backgroundUpload()">
-                        <b ng-if="user.backgroundToggle">[ </b>
-                        <span>Background</span>
-                        <b ng-if="user.backgroundToggle"> ]</b>
-                    </div>
-                    <div class="span-wrapper" ng-click="lfmAction()">
-                        <b ng-if="user.lastFMToggle">[ </b>
-                        <span>Last.FM</span>
-                        <b ng-if="user.lastFMToggle"> ]</b>
-                    </div>
-                    <div class="span-wrapper">
+                         ng-class="{'active': music.repeat}"
+                         ng-click="music.random = false; music.repeat = !music.repeat">
                         <span>
-                            {{user.username}}
-                            <i data-toggle="tooltip"
-                               data-placement="bottom" title="Logout"
-                               ng-click="logout()"
-                               class="fas fa-sign-out-alt"></i>
+                            <i data-feather="repeat"></i>
                         </span>
                     </div>
+                    <div class="span-wrapper"
+                         ng-class="{'active': music.random}"
+                         ng-click="music.repeat = false; music.random = !music.random">
+                        <span>
+                            <i data-feather="shuffle"></i>
+                        </span>
+                    </div>
+                    <div class="span-wrapper"
+                         ng-click="downloadSong()"
+                         ng-if="music.currentSongId">
+                        <span>
+                            <i data-feather="download"></i>
+                        </span>
+                    </div>
+                    <div class="span-wrapper"
+                         ng-if="music.currentSongId">
+                        <span>
+                            <i data-feather="share-2"></i>
+                        </span>
+                    </div>
+                    <!--<span>
+                        <span class="username">{{user.username}}</span>
+                        <i data-toggle="tooltip"
+                               data-placement="bottom" title="Logout"
+                               ng-click="logout()"
+                               class="fas fa-sign-out-alt">
+                        </i>
+                    </span>-->
                 </div>
             </div>
             <div class="panels">
@@ -69,39 +85,43 @@
                     ui-sortable="sortablePlaylists"
                     ng-model="user.playlists">
                         <li class="item"
-                        ng-click="setPlaylist(item)"
                         ng-if="user.playlists.length > 0"
                         ng-class="{'active': item._id === music.currentPlaylistId}"
                         ng-repeat="item in user.playlists">
-                        <span class="cut">
-                            <b ng-if="item._id === music.currentPlaylistId">[ </b>
-                            {{item.name}}
-                            <b ng-if="item._id === music.currentPlaylistId"> ]</b>
+                        <span class="cut" ng-click="setPlaylist(item)">
+                            <span class="cut">{{item.name}}</span>
                         </span>
+                        <div class="hover-actions">
+                            <i data-feather="edit-2" ng-click="renamePlaylistModalShow(item)"></i>
+                            <i data-feather="upload" ng-click="addSongModalShow(item)"></i>
+                            <i data-feather="share-2"></i>
+                            <i data-feather="x-square" ng-click="removePlaylist(item)"></i>
+                        </div>
                     </li>
                 </ul>
-                <ul class="col-6 songs music-container"
+                <ul class="col-5 songs music-container"
                     id="songs-container"
                     ui-sortable="sortableSongs"
                     ng-model="music.currentPlaylistSongs">
                     <li class="item"
                         id="song-{{item._id}}"
-                        ng-click="setSong(item)"
                         ng-if="music.currentPlaylistSongs.length > 0"
                         ng-class="{'active': item._id === music.currentSongId}"
                         ng-repeat="item in music.currentPlaylistSongs">
-                        <span class="cut">
-                            <b ng-if="item._id === music.currentSongId">[ </b>
+                        <span class="cut" ng-click="setSong(item)">
                             {{item.title}}
-                            <b ng-if="item._id === music.currentSongId"> ]</b>
                         </span>
+                        <div class="hover-actions">
+                            <i data-feather="edit-2" ng-click="renameSongModalShow(item)"></i>
+                            <i data-feather="download" ng-click="downloadSong(item)"></i>
+                            <i data-feather="share-2"></i>
+                            <i data-feather="x-square" ng-if="music.currentSongId !== item._id"
+                               ng-click="removeSong(item)"></i>
+                        </div>
                     </li>
                 </ul>
                 <div class="extra">
-                    <div class="actions">
-                        <div class="item" ng-click="modals.addPlaylist.modal('show')">
-                            <span>Add playlist</span>
-                        </div>
+                    <!--<div class="actions">
                         <div class="item" ng-click="renamePlaylistModalShow()"
                              ng-if="showPlaylistActions()">
                             <span>Rename playlist</span>
@@ -151,33 +171,40 @@
                                 <i class="fas fa-times"></i>
                             </span>
                         </div>
-                    </div>
+                    </div>-->
                 </div>
             </div>
             <div class="footer">
                 <span ng-if="!music.currentSongTitle || !music.currentPlayingPlaylistName"></span>
-                <span class="cut" ng-if="music.currentSongTitle && music.currentPlayingPlaylistName">
-                    Playing <b class="playlistname" ng-click="footerPlaylistLink()">{{music.currentSongTitle}}</b>
-                    from
-                    <b class="playlistname" ng-click="footerPlaylistLink()">{{music.currentPlayingPlaylistName}}</b>
-                    <span ng-if="music.repeat"> on <b>[ Repeat ]</b></span>
-                    <span ng-if="music.random"> on <b>[ Random ]</b></span>
+                <span class="status cut" ng-if="music.currentSongTitle && music.currentPlayingPlaylistName">
+                    <span class="footertext">Playing </span> <b class="cut footertext link" ng-click="footerPlaylistLink()">{{music.currentSongTitle}}</b>
+                    <span class="footertext">from</span>
+                    <b class="cut footertext link" ng-click="footerPlaylistLink()">{{music.currentPlayingPlaylistName}}</b>
+                    <span class="footertext" ng-if="music.repeat"> on <b>[ Repeat ]</b></span>
+                    <span class="footertext" ng-if="music.random"> on <b>[ Random ]</b></span>
                 </span>
                 <div class="extra-controls">
-                    <div class="span-wrapper" ng-click="music.random = false; music.repeat = !music.repeat">
-                        <span>
-                            <b ng-if="music.repeat">[ </b>
-                            Repeat
-                            <b ng-if="music.repeat"> ]</b>
-                        </span>
+                    <div class="span-wrapper" ng-click="modals.addPlaylist.modal('show')">
+                        <span>Add playlist</span>
                     </div>
-                    <div class="span-wrapper" ng-click="music.repeat = false; music.random = !music.random">
-                        <span>
-                            <b ng-if="music.random">[ </b>
-                            Random
-                            <b ng-if="music.random"> ]</b>
-                        </span>
+                    <div class="span-wrapper">
+                        <span>Queue: {{getKeysLength(queue)}}</span>
                     </div>
+                    <div class="span-wrapper">
+                        <span>Settings</span>
+                    </div>
+                    <!--<div class="span-wrapper"
+                         data-toggle="tooltip" title="Double-click to upload"
+                         sglclick="backgroundAction()" ng-dblclick="backgroundUpload()">
+                        <b ng-if="user.backgroundToggle">[ </b>
+                        <span>Background</span>
+                        <b ng-if="user.backgroundToggle"> ]</b>
+                    </div>
+                    <div class="span-wrapper" ng-click="lfmAction()">
+                        <b ng-if="user.lastFMToggle">[ </b>
+                        <span>Last.FM</span>
+                        <b ng-if="user.lastFMToggle"> ]</b>
+                    </div>-->
                 </div>
             </div>
         </div>
@@ -242,7 +269,7 @@
                             <input type="text" autofocus
                                    class="form-control"
                                    placeholder="Name"
-                                   ng-model="music.renamePlaylistName">
+                                   ng-model="music.renamePlaylist.name">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -267,7 +294,7 @@
                             <input type="text" autofocus
                                    class="form-control"
                                    placeholder="Name"
-                                   ng-model="music.renameSongTitle">
+                                   ng-model="music.renameSong.title">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -403,61 +430,15 @@
                 </div>
             </div>
         </div>
-        <!--Remove playlist-->
-        <div class="modal fade" id="removePlaylistModal" tabindex="-1" role="dialog" aria-labelledby="removePlaylistLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="removePlaylistLabel">Delete playlist</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="step">
-                            <div class="item"
-                                 ng-click="removePlaylist(item)"
-                                 ng-repeat="item in user.playlists">
-                                <span class="cut">{{item.name}}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!--Remove playlist-->
-        <div class="modal fade" id="removeSongModal" tabindex="-1" role="dialog" aria-labelledby="removeSongLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="removeSongLabel">Delete song</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="step">
-                            <div class="item"
-                                 ng-click="removeSong(item)"
-                                 ng-repeat="item in music.currentPlaylistSongs">
-                                <span class="cut">{{item.title}}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!--Lib-->
         <script src="jquery.min.js"></script>
         <script src="/node_modules/jquery-ui-dist/jquery-ui.min.js"></script>
         <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="/node_modules/feather-icons/dist/feather.min.js"></script>
+        <script>
+            feather.replace();
+        </script>
         <script src="/node_modules/angular/angular.js"></script>
         <script src="/node_modules/angular-ui-notification/dist/angular-ui-notification.min.js"></script>
         <script src="/node_modules/ng-media-events/src/ng-media-events.js"></script>

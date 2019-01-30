@@ -37,7 +37,13 @@
   max-height: 300px;
 }
 
+svg.feather {
+  width: 20px;
+}
+
 body {
+  font-family: 'Alegreya Sans SC', sans-serif;
+  letter-spacing: 0.4px;
   background-position-x: center;
   background-position-y: center;
   background-size: initial;
@@ -180,6 +186,7 @@ $footer-height: 25px;
     display: flex;
     flex-direction: row;
     width: 100%;
+    justify-content: space-between;
     height: $header-height;
     background-color: $main;
     color: $controls;
@@ -195,15 +202,22 @@ $footer-height: 25px;
       justify-content: space-between;
       min-width: 95px;
 
+      div {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
     }
 
     .songtitle {
+      width: 100%;
       display: flex;
       flex-direction: row;
       padding: 0 10px;
       marquee {
         display: flex;
         align-self: center;
+        width: 100%;
       }
 
       .time {
@@ -216,24 +230,38 @@ $footer-height: 25px;
     }
 
     .extra {
+      width: 200px;
       display: flex;
       flex-direction: row;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-around;
 
       div {
         cursor: pointer;
 
       }
 
-      span, .span-wrapper {
-        min-width: 110px;
-        text-align: center;
+      .span-wrapper {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        min-width: 25px;
 
+        &.active {
+          color: $item-active;
+        }
+      }
+
+      .username {
+        max-width: 150px;
+        text-align: right;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
 
       i {
-        margin: 0 3px;
+        margin: 0 6px;
       }
     }
   }
@@ -252,6 +280,26 @@ $footer-height: 25px;
       margin: 4px 0;
       padding: 7px 12px;
       min-height: 38px;
+      justify-content: space-between;
+
+      .hover-actions {
+        flex-direction: row;
+        display: none;
+        margin-left: 5px;
+
+        i, svg {
+          margin: 0 7px;
+          line-height: 24px;
+
+          &:hover {
+            color: $item-active;
+          }
+        }
+      }
+
+      &:hover > .hover-actions {
+        display: flex;
+      }
 
       &.queue-item {
         display: flex;
@@ -288,6 +336,7 @@ $footer-height: 25px;
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
+        width: 100%;
       }
     }
 
@@ -305,8 +354,8 @@ $footer-height: 25px;
     }
 
     .extra {
-      max-width: 25%;
-      width: 25%;
+      width: 100%;
+      margin-right: 0;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
@@ -344,10 +393,14 @@ $footer-height: 25px;
     justify-content: space-between;
     background-color: $main;
     height: $footer-height;
-    width: calc(100% - 12px);
+    width: calc(100% - 6px);
     border-radius: 5px;
     padding: 3px 3px 3px 10px;
     color: $controls;
+
+    .status {
+      width: 63%;
+    }
 
     .extra-controls {
       display: flex;
@@ -360,11 +413,21 @@ $footer-height: 25px;
       }
     }
 
-    .playlistname {
-      &:hover {
-        text-decoration: underline;
-        cursor: pointer;
-      }
+    .simpletext {
+      display: inline-block;
+    }
+
+    .footertext {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 35%;
+      display: inline-block;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+      cursor: pointer;
     }
 
     span, b {
