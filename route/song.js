@@ -99,9 +99,8 @@ module.exports = app => {
                     };
                 }
                 if (similar.track.length === 0) {
-                    app.lastFM.track.getSimilar({
-                        'artist': artist,
-                        'track': songtitle
+                    app.lastFM.artist.getSimilar({
+                        'artist': artist
                     }, (err, similar) => {
                         if (err || !similar) {
                             similar = {
