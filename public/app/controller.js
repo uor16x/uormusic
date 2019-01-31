@@ -781,6 +781,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         const ids = $scope.music.sharePlaylistSongs
             .filter(s => s.toShare)
             .map(s => s._id);
+        ids.reverse();
         $scope.modals.sharePlaylist.modal('hide');
         $scope.music.sharePlaylistSongs = [];
         $scope.shareSongs(ids);
