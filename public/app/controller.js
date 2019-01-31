@@ -813,14 +813,14 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     };
 
     $scope.openLyricsSearchGenius = () => {
-        const query = encodeURIComponent($scope.music.currentSongTitle);
-        const url = encodeURI(`https://genius.com/search?q=${query}`);
+        const query = encodeURI($scope.music.currentSongTitle);
+        const url = `https://genius.com/search?q=${query}`;
         window.open(url, 'Genius Lyrics Search',
             `scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,height=${screen.availHeight-200},width=${screen.availWidth-200},top=50,left=50`)
     };
     $scope.openLyricsSearchGoogle = () => {
-        const query = $scope.music.currentSongTitle.replace(/ /g, '+');
-        const url = encodeURI(`https://www.google.com/search?q=${query}+lyrics`);
+        const query = encodeURI($scope.music.currentSongTitle.replace(/ /g, '+'));
+        const url = `https://www.google.com/search?q=${query}+lyrics`;
         window.open(url, 'Google Lyrics Search',
             `scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,height=${screen.availHeight-200},width=${screen.availWidth-200},top=50,left=50`)
     };
