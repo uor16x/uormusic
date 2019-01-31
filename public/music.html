@@ -122,7 +122,42 @@
                     </li>
                 </ul>
                 <div class="extra">
-
+                    <div class="lyrics">
+                        <span class="line"
+                              ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.lyrics"
+                              ng-repeat="line in music.currentSongData.lyrics track by $index">
+                            {{line}}
+                        </span>
+                        <div class="disclaimer" ng-if="!music.loadingSongData && music.currentSongData && !music.currentSongData.lyrics">
+                            <span>No lyrics found</span>
+                            <span>Try to rename song in format ARTIST - TITLE</span>
+                            <span>or</span>
+                            <span class="link" ng-click="openLyricsSearchGenius()">
+                                SEARCH IN GENIUS
+                            </span>
+                            <span>or</span>
+                            <span class="link" ng-click="openLyricsSearchGoogle()">
+                                SEARCH IN GOOGLE
+                            </span>
+                        </div>
+                        <div class="disclaimer" ng-if="music.loadingSongData">
+                            <span>Loading lyrics</span>
+                        </div>
+                    </div>
+                    <div class="similar">
+                        <span class="item cut"
+                              ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.similar.length > 0"
+                              ng-click="openSimilar(song)"
+                              ng-repeat="song in music.currentSongData.similar track by $index">
+                            {{song}}
+                        </span>
+                        <div class="disclaimer" ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.similar.length === 0">
+                            <span>No similar found</span>
+                        </div>
+                        <div class="disclaimer" ng-if="music.loadingSongData">
+                            <span>Loading similar songs</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="footer">

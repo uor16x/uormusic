@@ -37,6 +37,9 @@ function AuthService($http) {
 }
 
 function MusicService($http) {
+    this.getSongData = function (title) {
+        return $http.get(`/song/data/${title}`);
+    };
     this.addPlaylist = function (name) {
         return $http.post('/playlist', {
             name

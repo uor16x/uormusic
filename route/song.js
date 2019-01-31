@@ -1,5 +1,8 @@
 const router = require('express').Router();
 const fetchVideoInfo = require('youtube.get-video-info');
+const request = require('request');
+const fetch = require("node-fetch");
+const cheerio = require('cheerio');
 let yt;
 const path = require('path');
 
@@ -10,7 +13,7 @@ const idParser = link => {
 };
 
 module.exports = app => {
-    yt = require('../helper/youtube')
+    yt = require('../helper/youtube');
     router.post('/youtube', (req, res) => {
         if (!req.body.playlistId) {
             return res.result('Playlist id missing');
@@ -65,6 +68,65 @@ module.exports = app => {
         });
     });
 
+    router.get('/data/:title', async (req, res) => {
+        if (!req.params.title) {
+            return res.result('Title missing');
+        }
+        let splitted = req.params.title.split('-');
+        if (!splitted[0] || !splitted[1]) {
+            splitted = req.params.title.split('–');
+        }
+        if (!splitted[0] || !splitted[1]) {
+            return res.result('Can\'t parse artist and title');
+        }
+        const artist = splitted[0].trim();
+        const songtitle = splitted[1].trim();
+        const url = "http://lyrics.wikia.com/" + artist + ":" + songtitle;
+        try {
+            const response = await fetch(url);
+            const html = await response.text();
+            const $ = cheerio.load(html);
+            $("div.lyricbox > .rtMatcher, div.lyricbox > .lyricsbreak").remove();
+            $("div.lyricbox > br").replaceWith("\n");
+            const lyrics = $("div.lyricbox").text();
+            app.lastFM.track.getSimilar({
+                'artist': artist,
+                'track': songtitle
+            }, (err, similar) => {
+                if (err || !similar) {
+                    similar = {
+                        track: []
+                    };
+                }
+                if (similar.track.length === 0) {
+                    app.lastFM.track.getSimilar({
+                        'artist': artist,
+                        'track': songtitle
+                    }, (err, similar) => {
+                        if (err || !similar) {
+                            similar = {
+                                track: []
+                            };
+                        }
+                        const songData = {
+                            lyrics: lyrics && lyrics.split('\n'),
+                            similar: similar && similar.track && similar.track.map(song => `${song.artist.name} - ${song.name}`)
+                        };
+                        return res.result(null, songData);
+                    })
+                } else {
+                    const songData = {
+                        lyrics: lyrics && lyrics.split('\n'),
+                        similar: similar && similar.track && similar.track.map(song => `${song.artist.name} - ${song.name}`)
+                    };
+                    return res.result(null, songData);
+                }
+            });
+        } catch (err) {
+            return res.result(err);
+        }
+    });
+
     router.post('/:id', app.upload.array("songs[]", 30), async (req, res) => {
         const songs = await req.files
             .map(file => {
@@ -74,6 +136,7 @@ module.exports = app => {
                 fileObject.save(err => {
                     return err ? console.error(err) : null;
                 });
+
                 return {
                     title: file.originalname.replace('.mp3', ''),
                     file: fileObject

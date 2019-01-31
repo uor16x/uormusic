@@ -52,6 +52,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         repeat: false,
         random: false,
         scrobbled: false,
+        loadingSongData: false,
         audio: $('#audio')[0],
 
         currentTime: '00:00',
@@ -76,6 +77,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
 
         currentSongId: null,
         currentSongTitle: 'MyMusic',
+        currentSongData: null,
 
         backgroundFile: null,
         backgroundInput: $('#backgroundInput'),
@@ -159,6 +161,20 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
             .catch(err => Notification.info(err.data))
             .finally(() => {
                 $scope.loading = false;
+            });
+    };
+
+    $scope.getSongData = song => {
+        $scope.music.loadingSongData = true;
+        MusicService.getSongData(song.title)
+            .then(response => {
+                if (response && response.data) {
+                    $scope.music.currentSongData = response.data;
+                }
+            })
+            .catch(err => Notification.error(err.data))
+            .finally(() => {
+                $scope.music.loadingSongData = false;
             });
     };
 
@@ -271,6 +287,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
                 }
                 const index = $scope.music.currentPlaylistSongs.findIndex(s => s._id === songId);
                 $scope.music.currentPlaylistSongs[index].title = title;
+                $scope.getSongData({ title });
                 Notification.success('Successfully renamed song');
             })
             .catch(err => Notification.info(err.data));
@@ -385,10 +402,12 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         $scope.music.audio.src = `/song/get/${song._id}`;
         $scope.music.currentSongId = song._id;
         $scope.music.currentSongTitle = song.title;
+        $scope.music.currentSongData = null;
         $scope.music.currentPlayingPlaylistId = currentPlayingPlaylistId || $scope.music.currentPlaylistId;
         $scope.music.currentPlayingPlaylistName = currentPlayingPlaylistName || $scope.music.currentPlaylistName;
         $scope.music.currentPlayingPlaylistSongs = currentPlayingPlaylistSongs || $scope.music.currentPlaylistSongs;
         $scope.music.scrobbled = false;
+        $scope.getSongData(song);
         $scope.play();
     };
 
@@ -784,6 +803,27 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         $scope.modals.sharePlaylist.modal('hide');
         $scope.music.sharePlaylistSongs = [];
         $scope.shareSongs(ids);
+    };
+
+    $scope.openSimilar = song => {
+        const query = song.replace(/ /g, '+');
+        const url = `https://www.youtube.com/results?search_query=${query}`;
+        window.open(url, 'Youtube Search',
+            `scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,height=${screen.availHeight-200},width=${screen.availWidth-200},top=50,left=50`);
+    };
+
+    $scope.openLyricsSearchGenius = () => {
+        const query = encodeURIComponent($scope.music.currentSongTitle);
+        const url = `https://genius.com/search?q=${query}`;
+        window.open(url, 'Genius Lyrics Search',
+            `scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,height=${screen.availHeight-200},width=${screen.availWidth-200},top=50,left=50`)
+    };
+    $scope.openLyricsSearchGoogle = () => {
+        //https://genius.com/search?q=%D0%B3%D1%80%D0%B5%D1%87%D0%BA%D0%B0%20%D1%82%D0%B2%D0%BE%D0%B8%20%D1%80%D1%83%D0%BA%D0%B8
+        const query = $scope.music.currentSongTitle.replace(/ /g, '+');
+        const url = `https://www.google.com/search?q=${query}+lyrics`;
+        window.open(url, 'Google Lyrics Search',
+            `scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,height=${screen.availHeight-200},width=${screen.availWidth-200},top=50,left=50`)
     };
 
 }

@@ -359,16 +359,46 @@ $footer-height: 25px;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
+      color: $controls;
 
-      .actions {
-        height: 52%;
+      .cut {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        width: 100%;
       }
 
-      .queue {
-        height: 45%;
+      .lyrics {
+        height: 38%;
+
+        .line {
+          text-align: left;
+        }
       }
 
-      .actions, .queue {
+      .similar {
+        height: 58%;
+      }
+
+      .disclaimer {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        .link {
+          cursor: pointer;
+          text-decoration: underline;
+        }
+
+        .span {
+          text-align: center;
+        }
+      }
+
+      .lyrics, .similar {
+        display: flex;
+        flex-direction: column;
         background-color: $item;
         overflow-y: scroll;
         border-radius: 5px;
@@ -380,7 +410,7 @@ $footer-height: 25px;
 
         span {
           width: 100%;
-          text-align: center;
+          max-width: 100%;
         }
       }
     }
