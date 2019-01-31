@@ -81,7 +81,7 @@ module.exports = app => {
         }
         const artist = splitted[0].trim();
         const songtitle = splitted[1].trim();
-        const url = encodeURI("http://lyrics.wikia.com/" + artist + ":" + songtitle);
+        const url = encodeURI("http://lyrics.wikia.com/" + artist.replace(/ /g, '+') + ":" + songtitle.replace(/ /g, '+'));
         try {
             const response = await fetch(url);
             const html = await response.text();
@@ -90,8 +90,13 @@ module.exports = app => {
             $("div.lyricbox > br").replaceWith("\n");
             const lyrics = $("div.lyricbox").text();
             app.lastFM.track.getSimilar({
-                'artist': artist,
-                'track': songtitle,
+                'artist': artist
+                    .toLowerCase()
+                    .replace(/lyrics/g, '')
+                    .replace(/\(lyrics\)/g, '')
+                    .replace(/\([0-9]+\)/g, '')
+                    .replace(/\(!\)/g, '+'),
+                'track': songtitle.toLowerCase(),
                 autocorrect: 1
             }, (err, similar) => {
                 if (err || !similar) {
@@ -101,7 +106,12 @@ module.exports = app => {
                 }
                 if (similar.track.length === 0) {
                     app.lastFM.artist.getSimilar({
-                        'artist': artist,
+                        'artist': artist
+                            .toLowerCase()
+                            .replace(/lyrics/g, '')
+                            .replace(/\(lyrics\)/g, '')
+                            .replace(/\([0-9]+\)/g, '')
+                            .replace(/\(!\)/g, '+'),
                         autocorrect: 1
                     }, (err, similar) => {
                         if (err || !similar) {
