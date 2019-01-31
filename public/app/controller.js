@@ -705,8 +705,42 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
 
     $scope.removeYTRow = index => {
         $scope.music.youtubeLinks.splice(index, 1);
-    }
+    };
 
     $scope.getKeysLength = obj => Object.keys(obj).length;
+
+    function fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
+    function copyTextToClipboard(text) {
+        if (!navigator.clipboard) {
+            fallbackCopyTextToClipboard(text);
+            return;
+        }
+        navigator.clipboard.writeText(text).then(function() {
+            console.log('Async: Copying to clipboard was successful!');
+        }, function(err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+    }
+
+    $scope.shareSongs = ids => {
+        const port = $location.port();
+        const link = `${$location.host()}${port === 80 ? '' : ':' + port}/shared?ids=${encodeURIComponent(JSON.stringify(ids))}`;
+        copyTextToClipboard(link);
+        Notification.info('Shared link has been copied to the clipboard');
+    };
 
 }

@@ -65,6 +65,7 @@
                         </span>
                     </div>
                     <div class="span-wrapper"
+                         ng-click="shareSongs([music.currentSongId])"
                          ng-if="music.currentSongId">
                         <span>
                             <i data-feather="share-2"></i>
@@ -114,7 +115,7 @@
                         <div class="hover-actions">
                             <i data-feather="edit-2" ng-click="renameSongModalShow(item)"></i>
                             <i data-feather="download" ng-click="downloadSong(item)"></i>
-                            <i data-feather="share-2"></i>
+                            <i data-feather="share-2" ng-click="shareSongs([item._id])"></i>
                             <i data-feather="x-square" ng-if="music.currentSongId !== item._id"
                                ng-click="removeSong(item)"></i>
                         </div>

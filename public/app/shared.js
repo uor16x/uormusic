@@ -79,9 +79,9 @@ function SharedController($scope, $location, DataService) {
     };
 
     const params = $location.search();
-    $scope.valid = params.type && (params.type === 's' || params.type === 'm') && params.id;
+    $scope.valid = !!params.ids;
     if ($scope.valid) {
-        DataService.get(params.type, params.id)
+        DataService.get(params.ids)
             .then(response => {
                 if (response && response.data) {
                     $scope.music.songs = response.data;
@@ -94,8 +94,8 @@ function SharedController($scope, $location, DataService) {
 }
 
 function DataService($http) {
-    this.get = function (type, id) {
-        return $http.get(`/user/shared/${type}/${id}`);
+    this.get = function (ids) {
+        return $http.get(`/user/shared/${ids}`);
     };
 }
 

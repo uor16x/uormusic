@@ -4,28 +4,19 @@ const path = require('path');
 
 module.exports = app => {
 
-    router.get('/shared/:type/:id', async (req, res) => {
-        if (!req.params.type) {
-            return res.result('Type missing');
+    router.get('/shared/:ids', async (req, res) => {
+        if (!req.params.ids) {
+            return res.result('Ids missing');
         }
-        if (!req.params.id) {
-            return res.result('Id missing');
-        }
-
-        if (req.params.type === 's') {
-            try {
-                const song = await app.services.song.get({ _id: req.params.id }, false, ['file']);
-                if (!song) {
-                    return res.result('So such song');
-                }
-                return res.result(null, [song]);
-            } catch (err) {
-                return res.result(err.message);
+        const ids = JSON.parse(decodeURIComponent(req.params.ids));
+        try {
+            const songs = await app.services.song.get({ _id: ids }, true, ['file']);
+            if (!songs) {
+                return res.result('So such song');
             }
-        } else if (req.params.type === 'm') {
-
-        } else {
-            return res.result('Wrong type');
+            return res.result(null, songs);
+        } catch (err) {
+            return res.result(err.message);
         }
     });
 
