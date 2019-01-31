@@ -86,7 +86,7 @@ module.exports = app => {
         return res.result(null, createdSongs);
     });
 
-    router.get('/:id', async (req, res) => {
+    router.get('/get/:id', async (req, res) => {
         if (!req.params.id) {
             return res.result('Id missing');
         }

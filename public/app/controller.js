@@ -379,7 +379,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
 
     $scope.setSong = (song, currentPlayingPlaylistId, currentPlayingPlaylistName, currentPlayingPlaylistSongs) => {
         $scope.pause();
-        $scope.music.audio.src = `/song/${song._id}`;
+        $scope.music.audio.src = `/song/get/${song._id}`;
         $scope.music.currentSongId = song._id;
         $scope.music.currentSongTitle = song.title;
         $scope.music.currentPlayingPlaylistId = currentPlayingPlaylistId || $scope.music.currentPlaylistId;
@@ -688,7 +688,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     $scope.downloadSong = (item) => {
         const link = document.createElement('a');
         link.download = `${item ? item.title : $scope.music.currentSongTitle}.mp3`;
-        link.href = `/song/${item ? item._id : $scope.music.currentSongId}`;
+        link.href = `/song/get/${item ? item._id : $scope.music.currentSongId}`;
         link.click();
     };
 

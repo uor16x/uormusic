@@ -27,7 +27,7 @@ function SharedController($scope, $location, DataService) {
 
     $scope.setSong = song => {
         $scope.pause();
-        $scope.music.audio.src = `/song/${song._id}`;
+        $scope.music.audio.src = `/song/get/${song._id}`;
         $scope.music.currentSongId = song._id;
         $scope.music.currentSongTitle = song.title;
         $scope.play();

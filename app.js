@@ -91,6 +91,7 @@ function configureApp(app) {
         }
         if ((req.originalUrl === '/user' && req.method !== 'PUT') ||
             req.originalUrl.indexOf('/lfm/cb') > -1 ||
+            req.originalUrl.indexOf('/song/get') > -1 ||
             req.originalUrl.indexOf('/user/shared') > -1 ) {
             return next();
         }
