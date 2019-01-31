@@ -81,7 +81,7 @@ module.exports = app => {
         }
         const artist = splitted[0].trim();
         const songtitle = splitted[1].trim();
-        const url = encodeURI("http://lyrics.wikia.com/" + artist.replace(/ /g, '+') + ":" + songtitle.replace(/ /g, '+'));
+        const url = encodeURI("http://lyrics.wikia.com/" + artist.trim().replace(/ /g, '_') + ":" + songtitle.trim().replace(/ /g, '_'));
         try {
             const response = await fetch(url);
             const html = await response.text();
