@@ -95,7 +95,8 @@ module.exports = app => {
                     .replace(/lyrics/g, '')
                     .replace(/\(lyrics\)/g, '')
                     .replace(/\([0-9]+\)/g, '')
-                    .replace(/\(!\)/g, ''),
+                    .replace(/\(!\)/g, '')
+                    .trim(),
                 'track': songtitle.toLowerCase(),
                 autocorrect: 1
             }, (err, similar) => {
@@ -111,7 +112,8 @@ module.exports = app => {
                             .replace(/lyrics/g, '')
                             .replace(/\(lyrics\)/g, '')
                             .replace(/\([0-9]+\)/g, '')
-                            .replace(/\(!\)/g, ''),
+                            .replace(/\(!\)/g, '')
+                            .trim(),
                         autocorrect: 1
                     }, (err, similar) => {
                         if (err || !similar) {
