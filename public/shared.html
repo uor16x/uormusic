@@ -1,0 +1,66 @@
+<html ng-app="shared" ng-controller="SharedController">
+<head>
+    <title ng-bind="music.currentSongTitle">MyMusic</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Alegreya+Sans+SC" rel="stylesheet">
+
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/node_modules/jquery-ui-dist/jquery-ui.min.css"/>
+    <link rel="stylesheet" href="shared.css"/>
+</head>
+<body ng-cloak class="ng-cloak" style="background-image: url(wallp.jpeg)">
+<audio id="audio" ng-timeupdate="updateTime()" onended="angular.element(this).scope().next()"></audio>
+<div ng-if="loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+<div class="music" ng-if="!valid">
+    <h1>Oops! Something went wrong. Please, try again later.</h1>
+</div>
+<div class="music" ng-if="valid">
+    <div class="player">
+        <div class="col-1 controls">
+            <div ng-click="prev()">
+                <i data-feather="skip-back"></i>
+            </div>
+            <div ng-if="!music.playing" ng-click="play()">
+                <i data-feather="play"></i>
+            </div>
+            <div ng-if="music.playing" ng-click="pause()">
+                <i data-feather="pause"></i>
+            </div>
+            <div ng-click="next()">
+                <i data-feather="skip-forward"></i>
+            </div>
+        </div>
+        <div class="songtitle">
+            <div class="time" ng-if="music.currentSongId">
+                <span>{{music.currentTime}}</span>
+                <span>/</span>
+                <span>{{music.durationTime}}</span>
+            </div>
+            <marquee #songTitleMarquee
+                     direction="left"
+                     behavior="alternate">
+                {{music.currentSongTitle}}
+            </marquee>
+        </div>
+    </div>
+    <div class="songs">
+        <div class="item" ng-repeat="song in music.songs" ng-click="setSong(song)">
+            <span class="cut">{{song.title}}</span>
+        </div>
+    </div>
+</div>
+
+<!--Lib-->
+<script src="jquery.min.js"></script>
+<script src="/node_modules/jquery-ui-dist/jquery-ui.min.js"></script>
+<script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/node_modules/feather-icons/dist/feather.min.js"></script>
+<script>
+    feather.replace();
+</script>
+<script src="/node_modules/angular/angular.js"></script>
+<script src="/node_modules/ng-media-events/src/ng-media-events.js"></script>
+<!--JS-->
+<script src="app/shared.js"></script>
+</body>
+</html>

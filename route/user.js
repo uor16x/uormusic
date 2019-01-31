@@ -1,7 +1,33 @@
 const router = require('express').Router();
+const ObjectId = require('mongoose').Types.ObjectId;
 const path = require('path');
 
 module.exports = app => {
+
+    router.get('/shared/:type/:id', async (req, res) => {
+        if (!req.params.type) {
+            return res.result('Type missing');
+        }
+        if (!req.params.id) {
+            return res.result('Id missing');
+        }
+
+        if (req.params.type === 's') {
+            try {
+                const song = await app.services.song.get({ _id: req.params.id }, false, ['file']);
+                if (!song) {
+                    return res.result('So such song');
+                }
+                return res.result(null, [song]);
+            } catch (err) {
+                return res.result(err.message);
+            }
+        } else if (req.params.type === 'm') {
+
+        } else {
+            return res.result('Wrong type');
+        }
+    });
 
     /**
      * Get background

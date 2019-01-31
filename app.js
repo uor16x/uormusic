@@ -74,6 +74,9 @@ function configureApp(app) {
     app.use('/node_modules', express.static('node_modules'));
     app.use(express.static('public'));
     app.get('/', (req, res) => res.sendFile('music.html', { root: __dirname + '/public' }));
+    app.get('/shared', (req, res) => {
+        res.sendFile('shared.html', { root: __dirname + '/public' });
+    });
     app.use((req, res, next) => {
         next();
     });
@@ -86,7 +89,9 @@ function configureApp(app) {
         if (req.session.auth) {
             return next();
         }
-        if ((req.originalUrl === '/user' && req.method !== 'PUT') || req.originalUrl.indexOf('/lfm/cb') > -1) {
+        if ((req.originalUrl === '/user' && req.method !== 'PUT') ||
+            req.originalUrl.indexOf('/lfm/cb') > -1 ||
+            req.originalUrl.indexOf('/user/shared') > -1 ) {
             return next();
         }
         return res.status(401).end();
