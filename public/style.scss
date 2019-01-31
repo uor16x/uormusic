@@ -465,7 +465,7 @@ $footer-height: 25px;
 }
 
 
-#copySongsModal, #removePlaylistModal, #removeSongModal, #settingsModal, #queueModal {
+#copySongsModal, #removePlaylistModal, #removeSongModal, #settingsModal, #queueModal, #sharePlaylistModal {
   .step {
     display: flex;
     flex-direction: column;
@@ -506,7 +506,7 @@ $footer-height: 25px;
   }
 }
 
-#queueModal {
+#queueModal, #sharePlaylistModal {
   .queue-item {
     display: flex;
     flex-direction: row;

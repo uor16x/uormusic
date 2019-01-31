@@ -44,7 +44,8 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         addSong: $('#addSongModal').modal(initModalOptions),
         renamePlaylist: $('#renamePlaylistModal').modal(initModalOptions),
         renameSong: $('#renameSongModal').modal(initModalOptions),
-        copySongs: $('#copySongsModal').modal(initModalOptions)
+        copySongs: $('#copySongsModal').modal(initModalOptions),
+        sharePlaylist: $('#sharePlaylistModal').modal(initModalOptions)
     };
     $scope.music = {
         playing: false,
@@ -81,6 +82,8 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
 
         youtubeLinks: [''],
         addFromYTMode: false,
+
+        sharePlaylistSongs: []
     };
     $scope.sortablePlaylists = {
         stop: () => {
@@ -314,7 +317,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         $scope.music.addSongsDest = {
             ...item
         };
-        return $scope.music.currentPlaylistId ? $scope.modals.addSong.modal('show') : Notification.info('Select playlist first');
+        return $scope.modals.addSong.modal('show');
     };
 
     $scope.renamePlaylistModalShow = (item) => {
@@ -741,6 +744,46 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         const link = `${$location.protocol()}://${$location.host()}${port === 80 || port === 443 ? '' : ':' + port}/shared?ids=${encodeURIComponent(JSON.stringify(ids))}`;
         copyTextToClipboard(link);
         Notification.info('Shared link has been copied to the clipboard');
+    };
+
+    $scope.showPlaylistShareButton = () =>
+        $scope.music.sharePlaylistSongs.filter(s => s.toShare).length > 0;
+
+    $scope.showPlaylistSelectAllButton = () =>
+        $scope.music.sharePlaylistSongs.filter(s => s.toShare).length < $scope.music.sharePlaylistSongs.length;
+
+    $scope.showPlaylistDeselectAllButton = () =>
+        $scope.music.sharePlaylistSongs.filter(s => s.toShare).length > 0;
+
+    $scope.sharePlaylistSetAllStatus = status => {
+        $scope.music.sharePlaylistSongs = $scope.music.sharePlaylistSongs
+            .map(s => {
+                s.toShare = status;
+                return s;
+            });
+    };
+
+    $scope.sharePlaylist = playlist => {
+        MusicService.getPlaylist(playlist._id)
+            .then(response => {
+                if (response && response.data) {
+                    $scope.music.sharePlaylistSongs = response.data;
+                    $scope.modals.sharePlaylist.modal('show');
+                }
+            })
+            .catch(err => Notification.info(err.data))
+            .finally(() => {
+                $scope.loading = false;
+            });
+    };
+
+    $scope.copySharedPlaylist = () => {
+        const ids = $scope.music.sharePlaylistSongs
+            .filter(s => s.toShare)
+            .map(s => s._id);
+        $scope.modals.sharePlaylist.modal('hide');
+        $scope.music.sharePlaylistSongs = [];
+        $scope.shareSongs(ids);
     };
 
 }

@@ -95,7 +95,7 @@
                         <div class="hover-actions">
                             <i data-feather="edit-2" ng-click="renamePlaylistModalShow(item)"></i>
                             <i data-feather="upload" ng-click="addSongModalShow(item)"></i>
-                            <i data-feather="share-2"></i>
+                            <i data-feather="share-2" ng-click="sharePlaylist(item)"></i>
                             <i data-feather="x-square" ng-click="removePlaylist(item)"></i>
                         </div>
                     </li>
@@ -436,6 +436,48 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--SharePlaylist-->
+        <div class="modal fade" id="sharePlaylistModal" tabindex="-1" role="dialog" aria-labelledby="sharePlaylistLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="sharePlaylistLabel">Share</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="step">
+                            <div class="item queue-item" ng-if="music.sharePlaylistSongs.length === 0">
+                                <span style="width: 100%; text-align: center">Queue is empty</span>
+                            </div>
+                            <div class="item queue-item"
+                                 ng-click="song.toShare = !song.toShare"
+                                 ng-class="{'active': song.toShare}"
+                                 ng-if="music.sharePlaylistSongs.length > 0"
+                                 ng-repeat="song in music.sharePlaylistSongs">
+                                <span class="title cut">
+                                    {{song.title}}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary"
+                                ng-click="sharePlaylistSetAllStatus(true)"
+                                ng-if="showPlaylistSelectAllButton()">Select all</button>
+                        <button type="button" class="btn btn-secondary"
+                                ng-click="sharePlaylistSetAllStatus(false)"
+                                ng-if="showPlaylistDeselectAllButton()">Deselect all</button>
+                        <button type="button" class="btn btn-primary"
+                                ng-if="showPlaylistShareButton()"
+                                ng-click="copySharedPlaylist()"
+                                data-dismiss="modal">Share</button>
                     </div>
                 </div>
             </div>
