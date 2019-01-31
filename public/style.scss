@@ -78,7 +78,7 @@ body {
   overflow-x: hidden;
   overflow-y: hidden;
 
-  //background: url(wallp.png) no-repeat center center fixed;
+  //background: url(wallp.jpeg) no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -465,7 +465,7 @@ $footer-height: 25px;
 }
 
 
-#copySongsModal, #removePlaylistModal, #removeSongModal {
+#copySongsModal, #removePlaylistModal, #removeSongModal, #settingsModal, #queueModal {
   .step {
     display: flex;
     flex-direction: column;
@@ -493,5 +493,34 @@ $footer-height: 25px;
     &.active {
       background-color: rgba(255,255,255,0.4);
     }
+  }
+}
+
+#settingsModal {
+  .item {
+    justify-content: center;
+
+    span {
+      margin: 0 5px;
+    }
+  }
+}
+
+#queueModal {
+  .queue-item {
+    display: flex;
+    flex-direction: row;
+
+    .title {
+      width: 85%;
+      text-align: left;
+    }
+    .percentage {
+      width: 10%;
+      text-align: right;
+    }
+  }
+  .item {
+    justify-content: space-between;
   }
 }

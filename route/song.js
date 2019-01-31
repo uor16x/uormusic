@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const fetchVideoInfo = require('youtube-info');
+const fetchVideoInfo = require('youtube.get-video-info');
 let yt;
 const path = require('path');
 
@@ -25,13 +25,14 @@ module.exports = app => {
         if (!videoId) {
             return res.result('Can\'t parse id');
         }
-        fetchVideoInfo(videoId, function (err, videoInfo) {
+        fetchVideoInfo.retrieve(videoId, function (err, videoInfo) {
             if (err) {
                 return res.result(err.message);
             }
+            const title = videoInfo.title.replace(/\"/g, "").replace(/\+/g, " ");
             global.sockets[req.body.socketId].emit('progress:start', {
-                videoId: videoInfo.videoId,
-                title: videoInfo.title
+                videoId,
+                title
             });
             const dl = new yt();
             dl.getMP3(videoId, req.body.socketId, async (err, data) => {
@@ -58,7 +59,7 @@ module.exports = app => {
                 }
                 playlist.songs = [newSong._id, ...playlist.songs];
                 await playlist.save();
-                global.sockets[req.body.socketId].emit('progress:finish', { videoId })
+                global.sockets[req.body.socketId].emit('progress:finish', { videoId });
                 return res.result(null, newSong);
             });
         });
