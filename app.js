@@ -12,6 +12,10 @@ const fs = require('fs');
 const lastfmapi = require('lastfmapi');
 const uuid = require('node-uuid');
 
+process.on('uncaughtException', err => {
+    console.log('Caught exception: ' + err);
+});
+
 /**
  * Dotenv
  */

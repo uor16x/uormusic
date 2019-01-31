@@ -350,7 +350,24 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     $scope.addSongYoutube = () => {
         $scope.modals.addSong.modal('hide');
         const currPlist = $scope.music.addSongsDest._id;
-        const links = $scope.music.youtubeLinks;
+        // const links = $scope.music.youtubeLinks;
+        const links = [
+            "https://www.youtube.com/watch?v=hD19HsBQJ4g",
+        "https://www.youtube.com/watch?v=2IuegOcT2g4",
+            "https://www.youtube.com/watch?v=T3jSzCE-cIk",
+                "https://www.youtube.com/watch?v=-87J7n1FCDQ",
+                    "https://www.youtube.com/watch?v=vVcpe8tghak",
+                        "https://www.youtube.com/watch?v=ErK9uizt-CA",
+                            "https://www.youtube.com/watch?v=N6--RyhnE3o",
+                                "https://www.youtube.com/watch?v=LkK52yXpE3Y",
+                                    "https://www.youtube.com/watch?v=iMGU_4KdtCM",
+                                        "https://www.youtube.com/watch?v=oiSiA4Wr1zo",
+                                            "https://www.youtube.com/watch?v=j2K50_FNkYk",
+                                                "https://www.youtube.com/watch?v=gjO_eCtZ-KA",
+                                                    "https://www.youtube.com/watch?v=TSocaLfBml4",
+                                                        "https://www.youtube.com/watch?v=nNbfZsX_4eY",
+                                                            "https://www.youtube.com/watch?v=VGnhLyRzLYA"
+        ];
         const socketId = socket.getId();
         links.forEach(link => {
             MusicService.uploadSongYT(currPlist, link, socketId)
