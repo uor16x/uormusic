@@ -91,7 +91,8 @@ module.exports = app => {
             const lyrics = $("div.lyricbox").text();
             app.lastFM.track.getSimilar({
                 'artist': artist,
-                'track': songtitle
+                'track': songtitle,
+                autocorrect: 1
             }, (err, similar) => {
                 if (err || !similar) {
                     similar = {
@@ -100,23 +101,24 @@ module.exports = app => {
                 }
                 if (similar.track.length === 0) {
                     app.lastFM.artist.getSimilar({
-                        'artist': artist
+                        'artist': artist,
+                        autocorrect: 1
                     }, (err, similar) => {
                         if (err || !similar) {
                             similar = {
-                                track: []
+                                artist: []
                             };
                         }
                         const songData = {
                             lyrics: lyrics && lyrics.split('\n'),
-                            similar: similar && similar.track && similar.track.map(song => `${song.artist.name} - ${song.name}`)
+                            similar: similar && similar.artist && similar.artist.map(artist => artist.name)
                         };
                         return res.result(null, songData);
                     })
                 } else {
                     const songData = {
                         lyrics: lyrics && lyrics.split('\n'),
-                        similar: similar && similar.track && similar.track.map(song => `${song.artist.name} - ${song.name}`)
+                        similar: (similar && similar.track && similar.track.map(song => `${song.artist.name} - ${song.name}`)) || []
                     };
                     return res.result(null, songData);
                 }
