@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const ObjectId = require('mongoose').Types.ObjectId;
+const atob = require('atob');
 const path = require('path');
 
 module.exports = app => {
@@ -8,12 +8,13 @@ module.exports = app => {
         if (!req.params.ids) {
             return res.result('Ids missing');
         }
-        const ids = JSON.parse(decodeURIComponent(req.params.ids));
+        const ids = atob(decodeURIComponent(req.params.ids)).split(',');
         try {
             const songs = await app.services.song.get({ _id: ids }, true, ['file']);
             if (!songs) {
                 return res.result('So such song');
             }
+            songs.reverse();
             return res.result(null, songs);
         } catch (err) {
             return res.result(err.message);

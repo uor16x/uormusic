@@ -741,7 +741,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
 
     $scope.shareSongs = ids => {
         const port = $location.port();
-        const link = `${$location.protocol()}://${$location.host()}${port === 80 || port === 443 ? '' : ':' + port}/shared?ids=${encodeURIComponent(JSON.stringify(ids))}`;
+        const link = `${$location.protocol()}://${$location.host()}${port === 80 || port === 443 ? '' : ':' + port}/shared?ids=${encodeURIComponent(btoa(ids.join(',')))}`;
         copyTextToClipboard(link);
         Notification.info('Shared link has been copied to the clipboard');
     };
@@ -781,7 +781,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         const ids = $scope.music.sharePlaylistSongs
             .filter(s => s.toShare)
             .map(s => s._id);
-        ids.reverse();
         $scope.modals.sharePlaylist.modal('hide');
         $scope.music.sharePlaylistSongs = [];
         $scope.shareSongs(ids);

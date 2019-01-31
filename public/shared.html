@@ -44,7 +44,10 @@
         </div>
     </div>
     <div class="songs">
-        <div class="item" ng-repeat="song in music.songs" ng-click="setSong(song)">
+        <div class="item"
+             ng-repeat="song in music.songs"
+             ng-class="{'active': music.currentSongId === song._id}"
+             ng-click="setSong(song)">
             <span class="cut">{{song.title}}</span>
         </div>
     </div>
