@@ -247,7 +247,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
                         const currVisible = $scope.music.currentPlaylistId === item._id;
                         const currPlaying = $scope.music.currentPlayingPlaylistId === item._id;
                         if (currVisible) {
-                            $scope.pause();
                             $scope.music.currentPlaylistId = null;
                             $scope.music.currentPlaylistName = '';
                             $scope.music.currentPlaylistSongs = [];
