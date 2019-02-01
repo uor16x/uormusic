@@ -443,7 +443,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="queueLabel">Queue</h5>
+                        <h5 class="modal-title" id="queueLabel">Queue<span ng-if="showRemaining()">: ~{{getQueueEta()}} remaining</span></h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -459,7 +459,7 @@
                                 <span class="title cut">
                                     {{value.title}}
                                 </span>
-                                <span class="percentage" ng-if="!value.finished">{{value.percentage}}%</span>
+                                <span class="percentage" ng-if="!value.finished">{{value.percentage}}</span>
                                 <span class="percentage" ng-if="value.finished">
                                     <i class="fas fa-check"></i>
                                 </span>

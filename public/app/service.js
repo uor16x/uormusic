@@ -80,10 +80,10 @@ function MusicService($http) {
         });
         // return $http.post(`/song/${playlistId}`, formData);
     };
-    this.uploadSongYT = function (playlistId, link, socketId) {
+    this.uploadSongYT = function (playlistId, links, socketId) {
         return $http.post('/song/youtube', {
             playlistId,
-            link,
+            links,
             socketId
         });
     };

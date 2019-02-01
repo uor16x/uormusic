@@ -17,10 +17,19 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         }, 1500);
     });
     socket.on('progress:update', function (data) {
-        $scope.queue[data.videoId].percentage = Math.floor(data.progress);
+        $scope.queue[data.videoId].percentage = Math.floor(data.progress) + '%';
+        $scope.queue[data.videoId].eta = data.eta > 3 ? data.eta / 3 : 0;
+        if ($scope.queue[data.videoId].percentage === '100%') {
+            $scope.queue[data.videoId].percentage = 'Encoding...';
+            debugger;
+        }
     });
     socket.on('progress:finish', function (data) {
+        Notification.info('Upload finished');
         $scope.queue[data.videoId].finished = true;
+        if (data.plist === $scope.music.currentPlaylistId) {
+            $scope.music.currentPlaylistSongs.unshift(data.newSong);
+        }
         setTimeout(() => {
             delete $scope.queue[data.videoId];
         }, 1500);
@@ -34,6 +43,36 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     socket.on('lastfm:auth', function (data) {
         $scope.authGet();
     });
+    $scope.convertTime = secs => {
+        secs = parseInt(secs);
+        const mins = Math.floor(secs / 60);
+        const finalMins = mins < 10 ? `0${mins}` : mins;
+        const remainingSecs = secs % 60;
+        const finalSecs = remainingSecs < 10 ? `0${remainingSecs}` : remainingSecs;
+        return (!isNaN(finalMins) && !isNaN(finalSecs)) ? `${finalMins}:${finalSecs}` : null;
+    };
+    $scope.getKeysLength = obj => Object.keys(obj).length;
+    $scope.getQueueEta = () => {
+        const summary = Object.keys($scope.queue).reduce((acc, key) => {
+            const elem = $scope.queue[key];
+            acc += (elem.percentage === 'Encoding' || !elem.eta) ? 0 : elem.eta;
+            return acc;
+        }, 0);
+        return $scope.convertTime(summary);
+    };
+    $scope.showRemaining = () => {
+        if ($scope.getKeysLength($scope.queue) === 0) {
+            return false;
+        }
+        let counter = 0;
+        for (let key in $scope.queue) {
+            const elem = $scope.queue[key];
+            if (!elem.finished && elem.percentage !== 'Encoding...') {
+                counter++;
+            }
+        }
+        return counter > 0;
+    };
 
     $scope.user = null;
     const initModalOptions = {
@@ -352,20 +391,10 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         const currPlist = $scope.music.addSongsDest._id;
         const links = $scope.music.youtubeLinks;
         const socketId = socket.getId();
-        links.forEach(link => {
-            MusicService.uploadSongYT(currPlist, link, socketId)
-                .then(response => {
-                    if (response.data) {
-                        Notification.info('Upload finished')
-                    }
-                    if (response.data && currPlist === $scope.music.currentPlaylistId) {
-                        $scope.music.currentPlaylistSongs.unshift(response.data);
-                    }
-                })
-                .catch(err => {
-                    return Notification.error(err.data);
-                });
-        });
+        MusicService.uploadSongYT(currPlist, links, socketId)
+            .catch(err => {
+                return Notification.error(err.data);
+            });
         $scope.music.addFromYTMode = false;
         $scope.music.youtubeLinks = [''];
     };
@@ -519,14 +548,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         }
     };
 
-    $scope.convertTime = secs => {
-        secs = parseInt(secs);
-        const mins = Math.floor(secs / 60);
-        const finalMins = mins < 10 ? `0${mins}` : mins;
-        const remainingSecs = secs % 60;
-        const finalSecs = remainingSecs < 10 ? `0${remainingSecs}` : remainingSecs;
-        return (!isNaN(finalMins) && !isNaN(finalSecs)) ? `${finalMins}:${finalSecs}` : null;
-    };
 
     $scope.updateTime = () => {
         if ($scope.music.audio.currentTime > 60 && !$scope.music.scrobbled) {
@@ -728,8 +749,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     $scope.removeYTRow = index => {
         $scope.music.youtubeLinks.splice(index, 1);
     };
-
-    $scope.getKeysLength = obj => Object.keys(obj).length;
 
     function fallbackCopyTextToClipboard(text) {
         const textArea = document.createElement("textarea");

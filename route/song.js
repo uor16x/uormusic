@@ -1,6 +1,5 @@
 const router = require('express').Router();
-const fetchVideoInfo = require('youtube.get-video-info');
-const request = require('request');
+const ytb = require('../helper/youtube');
 const fetch = require("node-fetch");
 const cheerio = require('cheerio');
 let yt;
@@ -13,22 +12,65 @@ const idParser = link => {
 };
 
 module.exports = app => {
-    yt = require('../helper/youtube');
     router.post('/youtube', (req, res) => {
         if (!req.body.playlistId) {
             return res.result('Playlist id missing');
         }
-       if (!req.body.link) {
+       if (!req.body.links) {
            return res.result('Link missing');
        }
         if (!req.body.socketId) {
             return res.result('SocketId missing');
         }
-       const videoId = idParser(req.body.link);
-        if (!videoId) {
-            return res.result('Can\'t parse id');
-        }
-        fetchVideoInfo.retrieve(videoId, function (err, videoInfo) {
+       const socket = global.sockets[req.body.socketId];
+       const videoIds = req.body.links.map(idParser);
+       videoIds.forEach(videoId => {
+           let started = false;
+           ytb(videoId, data => {
+               if (data) {
+                   if (!started) {
+                       socket.emit('progress:start', {
+                           videoId,
+                           title: data.title
+                       });
+                       started = true;
+                   }
+                   socket.emit('progress:update', {
+                       videoId,
+                       progress: data.percentage,
+                       eta: data.eta
+                   });
+               }
+           }, async (err, ytDownloadResult) => {
+               if (err || !ytDownloadResult) {
+                   socket.emit('progress:fail', {
+                       videoId: videoInfo.videoId
+                   });
+                   return res.result('Error download video');
+               }
+               const fileObject = new app.models.file({
+                   path: ytDownloadResult.filename
+               });
+               fileObject.save(err => {
+                   return err ? console.error(err) : null;
+               });
+               const newSong = new app.models.song({
+                   title: ytDownloadResult.title,
+                   file: fileObject
+               });
+               await newSong.save();
+               const playlist = await app.services.playlist.get({ _id: req.body.playlistId });
+               if (!playlist) {
+                   return res.result('Error getting playlist');
+               }
+               playlist.songs = [newSong._id, ...playlist.songs];
+               await playlist.save();
+               socket.emit('progress:finish', { videoId, newSong, plist: req.body.playlistId });
+               return res.result(null);
+           })
+       });
+        return res.result(null);
+        /*fetchVideoInfo.retrieve(videoId, function (err, videoInfo) {
             if (err) {
                 return res.result(err.message);
             }
@@ -62,10 +104,10 @@ module.exports = app => {
                 }
                 playlist.songs = [newSong._id, ...playlist.songs];
                 await playlist.save();
-                global.sockets[req.body.socketId].emit('progress:finish', { videoId });
+                global.sockets[req.body.socketId] && global.sockets[req.body.socketId].emit('progress:finish', { videoId });
                 return res.result(null, newSong);
             });
-        });
+        });*/
     });
 
     router.get('/data/:title', async (req, res) => {
@@ -77,7 +119,10 @@ module.exports = app => {
             splitted = req.params.title.split('–');
         }
         if (!splitted[0] || !splitted[1]) {
-            return res.result('Can\'t parse artist and title');
+            return {
+                lyrics: '',
+                similar: []
+            };
         }
         const artist = splitted[0].trim();
         const songtitle = splitted[1].trim();
