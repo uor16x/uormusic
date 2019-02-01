@@ -739,8 +739,8 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     };
 
     $scope.addYTRow = () => {
-        if ($scope.music.youtubeLinks.length > 30) {
-            return Notification.info('Max 30 rows');
+        if ($scope.music.youtubeLinks.length > 10) {
+            return Notification.info('Maximum 10 songs at once');
         }
         $scope.music.youtubeLinks.push('');
     };
