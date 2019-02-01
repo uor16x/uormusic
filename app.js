@@ -15,6 +15,9 @@ const uuid = require('node-uuid');
 process.on('uncaughtException', err => {
     console.log('Caught exception: ' + err);
 });
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+process.env['FFMPEG_PATH'] = ffmpegPath;
+process.env['FFPROBE_PATH'] = ffmpegPath;
 
 /**
  * Dotenv

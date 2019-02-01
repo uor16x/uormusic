@@ -4,7 +4,7 @@ const os = require('os');
 
 const downloader = function () {
     this.YD = new ytDownloader({
-        "ffmpegPath": os.platform() === 'win32' ? './ffmpeg/bin/ffmpeg' : '/usr/bin/ffmpeg',
+        "ffmpegPath": process.env['FFMPEG_PATH'],
         "outputPath": "./store",
         "youtubeVideoQuality": "highest",
         "queueParallelism": 2,
