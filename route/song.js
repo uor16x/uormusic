@@ -2,8 +2,36 @@ const router = require('express').Router();
 const ytb = require('../helper/youtube');
 const fetch = require("node-fetch");
 const cheerio = require('cheerio');
-let yt;
 const path = require('path');
+
+const concurrency = 3;
+const activeQueue = [];
+const waitQueue = [];
+
+const checkQueue = () => {
+    if (activeQueue.length < concurrency) {
+        const elem = waitQueue.pop();
+        if (elem) {
+            const retryTimeout = setTimeout(function () {
+                elem(() => {
+                    activeQueue.splice(activeQueue.indexOf(elem), 1);
+                    checkQueue();
+                })
+            }, 1000 * 180);
+            activeQueue.push(elem);
+            elem(() => {
+                clearTimeout(retryTimeout);
+                activeQueue.splice(activeQueue.indexOf(elem), 1);
+                checkQueue();
+            });
+        }
+    }
+};
+const pushQueue = item => {
+    console.log('Item pushed');
+    waitQueue.push(item);
+    checkQueue();
+};
 
 const idParserRegExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
 const idParser = link => {
@@ -22,92 +50,63 @@ module.exports = app => {
         if (!req.body.socketId) {
             return res.result('SocketId missing');
         }
-       const socket = global.sockets[req.body.socketId];
        const videoIds = req.body.links.map(idParser);
+        const socket = global.sockets[req.body.socketId];
        videoIds.forEach(videoId => {
-           let started = false;
-           ytb(videoId, data => {
-               if (data) {
-                   if (!started) {
-                       socket.emit('progress:start', {
+           socket && socket.emit('progress:start', {
+               videoId,
+               title: `https://www.youtube.com/watch?v=${videoId}`
+           });
+           const queueItem = function (queueCB) {
+               let failedTimeout;
+               ytb(videoId, data => {
+                   if (data) {
+                       if (failedTimeout) {
+                           clearTimeout(failedTimeout);
+                       }
+                       failedTimeout = setTimeout(function(){
+                           pushQueue(queueItem);
+                       }, 1000 * 30);
+
+                       socket && socket.emit('progress:update', {
                            videoId,
-                           title: data.title
+                           title: data.title,
+                           progress: data.percentage,
+                           eta: data.eta
                        });
-                       started = true;
                    }
-                   socket.emit('progress:update', {
-                       videoId,
-                       progress: data.percentage,
-                       eta: data.eta
+               }, async (err, ytDownloadResult) => {
+                   if (err || !ytDownloadResult) {
+                       socket && socket.emit('progress:fail', {
+                           videoId: videoInfo.videoId
+                       });
+                       return res.result('Error download video');
+                   }
+                   clearTimeout(failedTimeout);
+                   const fileObject = new app.models.file({
+                       path: ytDownloadResult.filename
                    });
-               }
-           }, async (err, ytDownloadResult) => {
-               if (err || !ytDownloadResult) {
-                   socket.emit('progress:fail', {
-                       videoId: videoInfo.videoId
+                   fileObject.save(err => {
+                       return err ? console.error(err) : null;
                    });
-                   return res.result('Error download video');
-               }
-               const fileObject = new app.models.file({
-                   path: ytDownloadResult.filename
+                   const newSong = new app.models.song({
+                       title: ytDownloadResult.title,
+                       file: fileObject
+                   });
+                   await newSong.save();
+                   const playlist = await app.services.playlist.get({ _id: req.body.playlistId });
+                   if (!playlist) {
+                       return res.result('Error getting playlist');
+                   }
+                   playlist.songs = [newSong._id, ...playlist.songs];
+                   await playlist.save();
+                   socket && socket.emit('progress:finish', { videoId, newSong, plist: req.body.playlistId });
+                   queueCB();
                });
-               fileObject.save(err => {
-                   return err ? console.error(err) : null;
-               });
-               const newSong = new app.models.song({
-                   title: ytDownloadResult.title,
-                   file: fileObject
-               });
-               await newSong.save();
-               const playlist = await app.services.playlist.get({ _id: req.body.playlistId });
-               if (!playlist) {
-                   return res.result('Error getting playlist');
-               }
-               playlist.songs = [newSong._id, ...playlist.songs];
-               await playlist.save();
-               socket.emit('progress:finish', { videoId, newSong, plist: req.body.playlistId });
-               return res.result(null);
-           })
+           };
+           pushQueue(queueItem);
        });
         return res.result(null);
-        /*fetchVideoInfo.retrieve(videoId, function (err, videoInfo) {
-            if (err) {
-                return res.result(err.message);
-            }
-            const title = videoInfo.title.replace(/\"/g, "").replace(/\+/g, " ");
-            global.sockets[req.body.socketId].emit('progress:start', {
-                videoId,
-                title
-            });
-            const dl = new yt();
-            dl.getMP3(videoId, req.body.socketId, async (err, data) => {
-                if (err) {
-                    global.sockets[req.body.socketId].emit('progress:fail', {
-                        videoId: videoInfo.videoId
-                    });
-                    return res.result('Error download video');
-                }
-                const fileObject = new app.models.file({
-                    path: data.file
-                });
-                fileObject.save(err => {
-                    return err ? console.error(err) : null;
-                });
-                const newSong = new app.models.song({
-                    title: data.videoTitle,
-                    file: fileObject
-                });
-                await newSong.save();
-                const playlist = await app.services.playlist.get({ _id: req.body.playlistId });
-                if (!playlist) {
-                    return res.result('Error getting playlist');
-                }
-                playlist.songs = [newSong._id, ...playlist.songs];
-                await playlist.save();
-                global.sockets[req.body.socketId] && global.sockets[req.body.socketId].emit('progress:finish', { videoId });
-                return res.result(null, newSong);
-            });
-        });*/
     });
 
     router.get('/data/:title', async (req, res) => {

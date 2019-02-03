@@ -7,7 +7,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     socket.on('progress:start', function (data) {
         $scope.queue[data.videoId] = {
             title: data.title,
-            percentage: 0
+            percentage: 'Queued'
         };
     });
     socket.on('progress:fail', function (data) {
@@ -17,15 +17,15 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         }, 1500);
     });
     socket.on('progress:update', function (data) {
+        $scope.queue[data.videoId].title = data.title;
         $scope.queue[data.videoId].percentage = Math.floor(data.progress) + '%';
         $scope.queue[data.videoId].eta = data.eta > 3 ? data.eta / 3 : 0;
         if ($scope.queue[data.videoId].percentage === '100%') {
             $scope.queue[data.videoId].percentage = 'Encoding...';
-            debugger;
         }
     });
     socket.on('progress:finish', function (data) {
-        Notification.info('Upload finished');
+        Notification.info(`${$scope.queue[data.videoId].title} > upload finished`);
         $scope.queue[data.videoId].finished = true;
         if (data.plist === $scope.music.currentPlaylistId) {
             $scope.music.currentPlaylistSongs.unshift(data.newSong);
@@ -52,27 +52,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         return (!isNaN(finalMins) && !isNaN(finalSecs)) ? `${finalMins}:${finalSecs}` : null;
     };
     $scope.getKeysLength = obj => Object.keys(obj).length;
-    $scope.getQueueEta = () => {
-        const summary = Object.keys($scope.queue).reduce((acc, key) => {
-            const elem = $scope.queue[key];
-            acc += (elem.percentage === 'Encoding' || !elem.eta) ? 0 : elem.eta;
-            return acc;
-        }, 0);
-        return $scope.convertTime(summary);
-    };
-    $scope.showRemaining = () => {
-        if ($scope.getKeysLength($scope.queue) === 0) {
-            return false;
-        }
-        let counter = 0;
-        for (let key in $scope.queue) {
-            const elem = $scope.queue[key];
-            if (!elem.finished && elem.percentage !== 'Encoding...') {
-                counter++;
-            }
-        }
-        return counter > 0;
-    };
 
     $scope.user = null;
     const initModalOptions = {
@@ -739,8 +718,8 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     };
 
     $scope.addYTRow = () => {
-        if ($scope.music.youtubeLinks.length > 5) {
-            return Notification.info('Maximum 5 songs at once');
+        if ($scope.music.youtubeLinks.length > 30) {
+            return Notification.info('Maximum 30 songs at once');
         }
         $scope.music.youtubeLinks.push('');
     };
