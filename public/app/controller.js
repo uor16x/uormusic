@@ -25,7 +25,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         }
     });
     socket.on('progress:finish', function (data) {
-        Notification.info(`${$scope.queue[data.videoId].title} > upload finished`);
+        Notification.primary(`Finished: ${$scope.queue[data.videoId].title}`);
         $scope.queue[data.videoId].finished = true;
         if (data.plist === $scope.music.currentPlaylistId) {
             $scope.music.currentPlaylistSongs.unshift(data.newSong);

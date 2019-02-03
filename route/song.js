@@ -17,7 +17,7 @@ const checkQueue = () => {
                     activeQueue.splice(activeQueue.indexOf(elem), 1);
                     checkQueue();
                 })
-            }, 1000 * 180);
+            }, 1000 * 150);
             activeQueue.push(elem);
             elem(() => {
                 clearTimeout(retryTimeout);
