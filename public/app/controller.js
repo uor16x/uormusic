@@ -3,6 +3,11 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         $(this).find('[autofocus]').focus();
     });
 
+    $scope.eq = {
+        canvas: $('#eq')[0],
+        interval: null
+    };
+
     $scope.queue = {};
     socket.on('progress:start', function (data) {
         $scope.queue[data.videoId] = {
@@ -404,8 +409,33 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         $scope.music.newSongInput.click();
     };
 
+    const audioContext = new AudioContext();
+    const source = audioContext.createMediaElementSource($scope.music.audio);
+    const ctx = $scope.eq.canvas.getContext('2d');
+    const analyser = audioContext.createAnalyser();
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+    const height = window.innerHeight / 2;
+    const width = window.innerWidth / 2;
+
     $scope.setSong = (song, currentPlayingPlaylistId, currentPlayingPlaylistName, currentPlayingPlaylistSongs) => {
         $scope.pause();
+        clearInterval($scope.eq.interval);
+        $scope.eq.interval = setInterval(() =>{
+            const freqData = new Uint8Array(analyser.frequencyBinCount);
+
+            analyser.getByteFrequencyData(freqData);
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+
+            for (let i = 0; i < freqData.length; i++ ) {
+                let magnitude = freqData[i];
+
+                ctx.fillRect(i*12, height, 11, -magnitude * 1.5);
+            }
+        }, 33);
+
         $scope.music.audio.src = `/song/get/${song._id}`;
         $scope.music.currentSongId = song._id;
         $scope.music.currentSongTitle = song.title;
