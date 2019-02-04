@@ -432,7 +432,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
             for (let i = 0; i < freqData.length; i++ ) {
                 let magnitude = freqData[i];
 
-                ctx.fillRect(i*12, height, 11, -magnitude * 1.5);
+                ctx.fillRect(i*12, height, 12, -magnitude * 1.5);
             }
         }, 33);
 
