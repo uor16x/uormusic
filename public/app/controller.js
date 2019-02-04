@@ -5,7 +5,8 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
 
     $scope.eq = {
         canvas: $('#eq')[0],
-        interval: null
+        interval: null,
+        inited: false
     };
 
     $scope.queue = {};
@@ -409,30 +410,35 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         $scope.music.newSongInput.click();
     };
 
-    const audioContext = new AudioContext();
-    const source = audioContext.createMediaElementSource($scope.music.audio);
-    const ctx = $scope.eq.canvas.getContext('2d');
-    const analyser = audioContext.createAnalyser();
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
-    const height = window.innerHeight / 2;
-    const width = window.innerWidth / 2;
-
+    function initEQ() {
+        $scope.eq.inited = true;
+        $scope.eq.audioContext = new AudioContext();
+        $scope.eq.source = $scope.eq.audioContext.createMediaElementSource($scope.music.audio);
+        $scope.eq.ctx = $scope.eq.canvas.getContext('2d');
+        $scope.eq.analyser = $scope.eq.audioContext.createAnalyser();
+        $scope.eq.source.connect($scope.eq.analyser);
+        $scope.eq.analyser.connect($scope.eq.audioContext.destination);
+        $scope.eq.height = window.innerHeight / 2;
+        $scope.eq.width = window.innerWidth / 2;
+    }
     $scope.setSong = (song, currentPlayingPlaylistId, currentPlayingPlaylistName, currentPlayingPlaylistSongs) => {
+        if (!$scope.eq.inited) {
+            initEQ();
+        }
         $scope.pause();
         clearInterval($scope.eq.interval);
         $scope.eq.interval = setInterval(() =>{
-            const freqData = new Uint8Array(analyser.frequencyBinCount);
+            const freqData = new Uint8Array($scope.eq.analyser.frequencyBinCount);
 
-            analyser.getByteFrequencyData(freqData);
+            $scope.eq.analyser.getByteFrequencyData(freqData);
 
-            ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            $scope.eq.ctx.clearRect(0, 0, $scope.eq.width, $scope.eq.height);
+            $scope.eq.ctx.fillStyle = 'rgba(255,255,255,0.05)';
 
             for (let i = 0; i < freqData.length; i++ ) {
                 let magnitude = freqData[i];
 
-                ctx.fillRect(i*12, height, 12, -magnitude * 1.5);
+                $scope.eq.ctx.fillRect(i*14, $scope.eq.height, 13.7, -magnitude * 1.5);
             }
         }, 33);
 
