@@ -87,6 +87,14 @@ function MusicService($http) {
             socketId
         });
     };
+    this.getShortenedLink = function (link) {
+        return $http.post('https://api.rebrandly.com/v1/links', { destination: link }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': 'fc420d567a9747e18bb55b114536f640'
+            }
+        });
+    };
     this.copySongs = function (playlistId, songIDs) {
         return $http.put(`/song/${playlistId}`, {
             songIDs

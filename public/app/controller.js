@@ -794,8 +794,14 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     $scope.shareSongs = ids => {
         const port = $location.port();
         const link = `${$location.protocol()}://${$location.host()}${port === 80 || port === 443 ? '' : ':' + port}/shared?ids=${encodeURIComponent(btoa(ids.join(',')))}`;
-        copyTextToClipboard(link);
-        Notification.info('Shared link has been copied to the clipboard');
+        MusicService.getShortenedLink(link)
+            .then(response => {
+                copyTextToClipboard(response.data.shortUrl);
+                Notification.info('Shared link has been copied to the clipboard');
+            })
+            .catch(err => {
+                Notification.info(err.data)
+            });
     };
 
     $scope.showPlaylistShareButton = () =>
