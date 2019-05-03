@@ -345,7 +345,7 @@ $footer-height: 25px;
       border-radius: 5px;
       display: flex;
       flex-direction: column;
-      height: calc(100% - #{$header-height} - 18px - #{$footer-height});
+      height: calc(100vh - #{$header-height} - 18px - #{$footer-height});
       background-color: $main;
       overflow-y: scroll;
       overflow-x: hidden;
