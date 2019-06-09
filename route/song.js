@@ -33,10 +33,10 @@ const pushQueue = item => {
     checkQueue();
 };
 
-const idParserRegExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+const idParserRegExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
 const idParser = link => {
     const match = link.match(idParserRegExp);
-    return (match && match[7].length === 11)? match[7] : false;
+    return (match && match[2].length === 11) ? match[2] : false;
 };
 
 module.exports = app => {
