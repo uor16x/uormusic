@@ -4,7 +4,7 @@ const fetch = require("node-fetch");
 const cheerio = require('cheerio');
 const path = require('path');
 
-const concurrency = 3;
+const concurrency = 5;
 const activeQueue = [];
 const waitQueue = [];
 
@@ -51,7 +51,7 @@ module.exports = app => {
             return res.result('SocketId missing');
         }
        const videoIds = req.body.links.map(idParser);
-        const socket = global.sockets[req.body.socketId];
+       const socket = global.sockets[req.body.socketId];
        videoIds.forEach(videoId => {
            socket && socket.emit('progress:start', {
                videoId,
@@ -67,7 +67,7 @@ module.exports = app => {
                            }
                            failedTimeout = setTimeout(function(){
                                pushQueue(queueItem);
-                           }, 1000 * 30);
+                           }, 1000 * 60);
 
                            socket && socket.emit('progress:update', {
                                videoId,
@@ -79,7 +79,7 @@ module.exports = app => {
                    }, async (err, ytDownloadResult) => {
                        if (err || !ytDownloadResult) {
                            socket && socket.emit('progress:fail', {
-                               videoId: videoInfo.videoId
+                               videoId: videoId
                            });
                            return res.result('Error download video');
                        }

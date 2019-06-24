@@ -4,10 +4,11 @@ const info = require('./info.min');
 const ytdl = require("ytdl-core");
 const uuid = require('node-uuid');
 const path = require('path');
+const fs = require('fs');
 
 const youtubeVideoQuality = 'highest';
 const outputPath = './store';
-const progressTimeout = 800;
+const progressTimeout = 200;
 const requestOptions = { maxRedirects: 5 };
 const fileNameReplacements = [[/"/g, ""], [/'/g, ""], [/\//g, ""], [/\?/g, ""], [/:/g, ""], [/;/g, ""]];
 
@@ -27,13 +28,14 @@ module.exports = (id, progressCB, cb) => {
         result.filename = path.join(outputPath, uuid.v4());
         result.title = cleanupTitle(info.title);
 
-        const stream = ytdl.downloadFromInfo(info, {
-            quality: youtubeVideoQuality,
-            requestOptions: requestOptions
+        const videoName = `${result.filename}.mp4`;
+        const stream = fs.createWriteStream(videoName);
+        const videoDownloadStream = ytdl(`http://www.youtube.com/watch?v=${id}`, {
+            requestOptions
         });
-        stream.on('response', httpResponse => {
+        videoDownloadStream.once('response', data => {
             const progressStream = progress({
-                length: parseInt(httpResponse.headers["content-length"]),
+                length: parseInt(data.headers["content-length"]),
                 time: progressTimeout
             });
 
@@ -42,21 +44,25 @@ module.exports = (id, progressCB, cb) => {
                 progressCB(progress);
             });
 
-            new ffmpeg({
-                source: stream.pipe(progressStream)
-            })
-                .audioBitrate(320)
-                .withAudioCodec('libmp3lame')
-                .toFormat('mp3')
-                .outputOptions('-id3v2_version', '4')
-                .on('error', err => {
-                    cb(err, null);
+            progressStream.on('end', () => {
+                new ffmpeg({
+                    source: `${result.filename}.mp4`
                 })
-                .on('end', () => {
-                    cb(null, result);
-                })
-                .saveToFile(result.filename);
+                    .audioBitrate(320)
+                    .withAudioCodec('libmp3lame')
+                    .toFormat('mp3')
+                    .outputOptions('-id3v2_version', '4')
+                    .on('error', err => {
+                        cb(err, null);
+                    })
+                    .on('end', () => {
+                        fs.unlink(`${result.filename}.mp4`, err => console.error(err));
+                        cb(null, result);
+                    })
+                    .saveToFile(result.filename);
+            });
 
+            videoDownloadStream.pipe(progressStream).pipe(stream);
         });
     });
 };
