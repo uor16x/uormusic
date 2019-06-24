@@ -20,6 +20,7 @@ const cleanupTitle = title => {
 };
 
 module.exports = (id, progressCB, cb) => {
+    console.log(`Inside YTB`);
     const result = {
         id
     };
@@ -33,7 +34,9 @@ module.exports = (id, progressCB, cb) => {
         const videoDownloadStream = ytdl(`http://www.youtube.com/watch?v=${id}`, {
             requestOptions
         });
+        console.log(`Before ONCE`);
         videoDownloadStream.once('response', data => {
+            console.log(`Inside ONCE`);
             const progressStream = progress({
                 length: parseInt(data.headers["content-length"]),
                 time: progressTimeout
@@ -45,6 +48,7 @@ module.exports = (id, progressCB, cb) => {
             });
 
             progressStream.on('end', () => {
+                console.log(`On progress stream end`);
                 new ffmpeg({
                     source: `${result.filename}.mp4`
                 })
@@ -53,10 +57,12 @@ module.exports = (id, progressCB, cb) => {
                     .toFormat('mp3')
                     .outputOptions('-id3v2_version', '4')
                     .on('error', err => {
+                        console.log(`ffmpeg error`);
                         cb(err, null);
                     })
                     .on('end', () => {
-                        fs.unlink(`${result.filename}.mp4`, err => console.error(err));
+                        console.log(`ffmpeg end`);
+                        fs.unlink(`${result.filename}.mp4`, err => err ? console.error(err) : null);
                         cb(null, result);
                     })
                     .saveToFile(result.filename);
