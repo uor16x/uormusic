@@ -13,7 +13,7 @@
         <input class="hidden-inputs" id="newSongDisk" multiple file-model="music.newSongFile" type="file" accept="audio/*"/>
         <input class="hidden-inputs" id="backgroundInput" file-model="music.backgroundFile" type="file" accept="image/*"/>
         <audio id="audio" ng-timeupdate="updateTime()" onended="angular.element(this).scope().next()"></audio>
-        <div ng-if="loading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+        <div ng-if="loading" class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
         <div class="music" ng-if="user">
             <div class="player">
                 <div class="col-1 controls">
