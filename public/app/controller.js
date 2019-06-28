@@ -78,7 +78,8 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         renamePlaylist: $('#renamePlaylistModal').modal(initModalOptions),
         renameSong: $('#renameSongModal').modal(initModalOptions),
         copySongs: $('#copySongsModal').modal(initModalOptions),
-        sharePlaylist: $('#sharePlaylistModal').modal(initModalOptions)
+        sharePlaylist: $('#sharePlaylistModal').modal(initModalOptions),
+        extra: $('#extraModal').modal(initModalOptions)
     };
     $scope.music = {
         playing: false,
@@ -198,16 +199,17 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     };
 
     $scope.getSongData = song => {
-        $scope.music.loadingSongData = true;
+        $scope.loading = true;
         MusicService.getSongData(song.title)
             .then(response => {
                 if (response && response.data) {
                     $scope.music.currentSongData = response.data;
+                    $scope.modals.extra.modal('show');
                 }
             })
             .catch(err => Notification.error(err.data))
             .finally(() => {
-                $scope.music.loadingSongData = false;
+                $scope.loading = false;
             });
     };
 
@@ -319,7 +321,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
                 }
                 const index = $scope.music.currentPlaylistSongs.findIndex(s => s._id === songId);
                 $scope.music.currentPlaylistSongs[index].title = title;
-                $scope.getSongData({ title });
                 Notification.success('Successfully renamed song');
             })
             .catch(err => Notification.info(err.data));
@@ -460,7 +461,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         $scope.music.currentPlayingPlaylistName = currentPlayingPlaylistName || $scope.music.currentPlaylistName;
         $scope.music.currentPlayingPlaylistSongs = currentPlayingPlaylistSongs || $scope.music.currentPlaylistSongs;
         $scope.music.scrobbled = false;
-        $scope.getSongData(song);
         $scope.play();
     };
 

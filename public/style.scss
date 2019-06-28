@@ -214,10 +214,6 @@ body {
       transform: rotate(360deg);
     }
   }
-
-
-
-
   .fa-check {
     line-height: 24px;
   }
@@ -251,6 +247,7 @@ body {
     width: 20%;
   }
 }
+
 
 // Colors && vars
 $main: rgba(33,33,33,0.2);
@@ -425,7 +422,7 @@ $footer-height: 25px;
       }
     }
 
-    .playlists, .search, .extra {
+    .playlists, .search {
       padding: 3px 10px;
       border-radius: 5px;
       display: flex;
@@ -484,70 +481,6 @@ $footer-height: 25px;
       }
     }
 
-    .extra {
-      -webkit-animation: slide-bottom .4s ease-out;
-      -moz-animation: slide-bottom .4s ease-out;
-      width: 100%;
-      margin-left: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      color: $controls;
-
-      .cut {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        width: 100%;
-      }
-
-      .lyrics {
-        height: 48%;
-
-        .line {
-          text-align: left;
-        }
-      }
-
-      .similar {
-        height: 48%;
-      }
-
-      .disclaimer {
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-
-        .link {
-          cursor: pointer;
-          text-decoration: underline;
-        }
-
-        .span {
-          text-align: center;
-        }
-      }
-
-      .lyrics, .similar {
-        display: flex;
-        flex-direction: column;
-        background-color: $item;
-        overflow-y: scroll;
-        border-radius: 5px;
-        padding: 3px 10px;
-        border: 0.5px solid rgba(black, 0.2);
-
-        .item {
-          justify-content: space-between;
-        }
-
-        span {
-          width: 100%;
-          max-width: 100%;
-        }
-      }
-    }
   }
 
   .footer {
@@ -631,7 +564,7 @@ $footer-height: 25px;
 }
 
 
-#copySongsModal, #removePlaylistModal, #removeSongModal, #settingsModal, #queueModal, #sharePlaylistModal {
+#copySongsModal, #removePlaylistModal, #removeSongModal, #settingsModal, #queueModal, #sharePlaylistModal, #extraModal {
   .step {
     display: flex;
     flex-direction: column;
@@ -658,6 +591,58 @@ $footer-height: 25px;
 
     &.active {
       background-color: rgba(255,255,255,0.4);
+    }
+  }
+}
+
+#extraModal {
+  .lyrics {
+    max-height: 200px;
+    color: $controls;
+    height: 48%;
+
+    .line {
+      text-align: left;
+    }
+  }
+
+  .similar {
+    max-height: 300px;
+    height: 48%;
+  }
+
+  .disclaimer {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .link {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .span {
+      text-align: center;
+    }
+  }
+
+  .lyrics, .similar {
+    display: flex;
+    flex-direction: column;
+    background-color: $item;
+    overflow-y: scroll;
+    border-radius: 5px;
+    padding: 3px 10px;
+    border: 0.5px solid rgba(black, 0.2);
+
+    .item {
+      justify-content: space-between;
+    }
+
+    span {
+      width: 100%;
+      max-width: 100%;
     }
   }
 }

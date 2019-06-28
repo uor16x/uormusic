@@ -121,6 +121,7 @@
                         </span>
                             <div class="hover-actions">
                                 <i data-feather="edit-2" ng-click="renameSongModalShow(item)"></i>
+                                <i data-feather="file-text" ng-click="getSongData(item)"></i>
                                 <i data-feather="download" ng-click="downloadSong(item)"></i>
                                 <i data-feather="share-2" ng-click="shareSongs([item._id])"></i>
                                 <i data-feather="x-square" ng-if="music.currentSongId !== item._id"
@@ -128,44 +129,6 @@
                             </div>
                         </li>
                     </ul>
-                </div>
-                <div class="extra" ng-if="false">
-                    <div class="lyrics">
-                        <span class="line"
-                              ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.lyrics"
-                              ng-repeat="line in music.currentSongData.lyrics track by $index">
-                            {{line}}
-                        </span>
-                        <div class="disclaimer" ng-if="!music.loadingSongData && music.currentSongData && !music.currentSongData.lyrics">
-                            <span>No lyrics found</span>
-                            <span>Try to rename song in format ARTIST - TITLE</span>
-                            <span>or</span>
-                            <span class="link" ng-click="openLyricsSearchGenius()">
-                                SEARCH IN GENIUS
-                            </span>
-                            <span>or</span>
-                            <span class="link" ng-click="openLyricsSearchGoogle()">
-                                SEARCH IN GOOGLE
-                            </span>
-                        </div>
-                        <div class="disclaimer" ng-if="music.loadingSongData">
-                            <span>Loading lyrics</span>
-                        </div>
-                    </div>
-                    <div class="similar">
-                        <span class="item cut"
-                              ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.similar.length > 0"
-                              ng-click="openSimilar(song)"
-                              ng-repeat="song in music.currentSongData.similar track by $index">
-                            {{song}}
-                        </span>
-                        <div class="disclaimer" ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.similar.length === 0">
-                            <span>No similar found</span>
-                        </div>
-                        <div class="disclaimer" ng-if="music.loadingSongData">
-                            <span>Loading similar songs</span>
-                        </div>
-                    </div>
                 </div>
                 <div class="col-7 search music-container">
                     <span>VK/Youtube search: development in progress</span>
@@ -446,6 +409,60 @@
                             </div>
                             <div class="item" ng-click="logout()" data-dismiss="modal" aria-label="Close">
                                 <span>Logout</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Extra-->
+        <div class="modal fade" id="extraModal" tabindex="-1" role="dialog" aria-labelledby="extraLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="extraLabel">Lyrics & Recommendations</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="lyrics">
+                        <span class="line"
+                              ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.lyrics"
+                              ng-repeat="line in music.currentSongData.lyrics track by $index">
+                            {{line}}
+                        </span>
+                            <div class="disclaimer" ng-if="!music.loadingSongData && music.currentSongData && !music.currentSongData.lyrics">
+                                <span>No lyrics found</span>
+                                <span>Try to rename song in format ARTIST - TITLE</span>
+                                <span>or</span>
+                                <span class="link" ng-click="openLyricsSearchGenius()">
+                                SEARCH IN GENIUS
+                            </span>
+                                <span>or</span>
+                                <span class="link" ng-click="openLyricsSearchGoogle()">
+                                SEARCH IN GOOGLE
+                            </span>
+                            </div>
+                            <div class="disclaimer" ng-if="music.loadingSongData">
+                                <span>Loading lyrics</span>
+                            </div>
+                        </div>
+                        <div class="similar">
+                        <span class="item cut"
+                              ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.similar.length > 0"
+                              ng-click="openSimilar(song)"
+                              ng-repeat="song in music.currentSongData.similar track by $index">
+                            {{song}}
+                        </span>
+                            <div class="disclaimer" ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.similar.length === 0">
+                                <span>No similar found</span>
+                            </div>
+                            <div class="disclaimer" ng-if="music.loadingSongData">
+                                <span>Loading similar songs</span>
                             </div>
                         </div>
                     </div>
