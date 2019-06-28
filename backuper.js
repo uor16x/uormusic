@@ -47,7 +47,7 @@ function backup() {
             file: models.file.find({})
         }))
         .then(dump => bluebird.promisify(fs.writeFile)(`./backup/${name}.json`, JSON.stringify(dump)))
-        .then(() => zip('./store', `./backup/${name}.zip`))
+        // .then(() => zip('./store', `./backup/${name}.zip`)) ZIP
         .then(() => console.log('Backup created'))
         .catch(err => {
             console.error(err);
@@ -81,7 +81,7 @@ function restore() {
                 models.file.create(dump.file),
             ]);
         })
-        .then(() => {
+        /*.then(() => {
             console.log('Data restored');
             return new Promise((resolve, reject) => {
                 empty('./store', false, result => {
@@ -98,7 +98,7 @@ function restore() {
             const fileUnzip = unzip.Extract({ path: './store' });
             fileUnzip.on('finish', () => console.log('Backup restored'));
             fileWrite.pipe(fileUnzip);
-        })
+        })*/
         .catch(err => {
             console.error(err);
             return process.exit(1);
