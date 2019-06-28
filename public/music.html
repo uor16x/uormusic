@@ -82,15 +82,17 @@
                 </div>
             </div>
             <div class="panels">
-                <ul class="col-3 playlists music-container"
+                <ul ng-if="modePlaylists" class="col-4 playlists music-container"
                     ui-sortable="sortablePlaylists"
                     ng-model="user.playlists">
                         <li class="item"
                         ng-if="user.playlists.length > 0"
-                        ng-class="{'active': item._id === music.currentPlaylistId}"
+                        ng-class="{'active': item._id === music.currentPlayingPlaylistId}"
                         ng-repeat="item in user.playlists">
                         <span class="cut" ng-click="setPlaylist(item)">
-                            <span class="cut">{{item.name}}</span>
+                            <span class="cut">
+                                {{item.name}}
+                            </span>
                         </span>
                         <div class="hover-actions">
                             <i data-feather="edit-2" ng-click="renamePlaylistModalShow(item)"></i>
@@ -100,27 +102,33 @@
                         </div>
                     </li>
                 </ul>
-                <ul class="col-5 songs music-container"
-                    id="songs-container"
-                    ui-sortable="sortableSongs"
-                    ng-model="music.currentPlaylistSongs">
-                    <li class="item"
-                        id="song-{{item._id}}"
-                        ng-if="music.currentPlaylistSongs.length > 0"
-                        ng-class="{'active': item._id === music.currentSongId}"
-                        ng-repeat="item in music.currentPlaylistSongs">
-                        <span class="cut" ng-click="setSong(item)">
+                <div ng-if="!modePlaylists" class="col-4 songs music-container">
+                    <li class="item playlist-back" ng-click="modePlaylistsTurnOn()">
+                        <i class="playlist-back-icon" data-feather="arrow-left-circle"><</i>
+                        <span class="cut playlist-back-span">{{music.currentPlaylistName}}</span>
+                    </li>
+                    <ul ng-if="!modePlaylists"
+                        id="songs-container"
+                        ui-sortable="sortableSongs"
+                        ng-model="music.currentPlaylistSongs">
+                        <li class="item"
+                            id="song-{{item._id}}"
+                            ng-if="music.currentPlaylistSongs.length > 0"
+                            ng-class="{'active': item._id === music.currentSongId}"
+                            ng-repeat="item in music.currentPlaylistSongs">
+                        <span class="cut song-select" ng-click="setSong(item)">
                             {{item.title}}
                         </span>
-                        <div class="hover-actions">
-                            <i data-feather="edit-2" ng-click="renameSongModalShow(item)"></i>
-                            <i data-feather="download" ng-click="downloadSong(item)"></i>
-                            <i data-feather="share-2" ng-click="shareSongs([item._id])"></i>
-                            <i data-feather="x-square" ng-if="music.currentSongId !== item._id"
-                               ng-click="removeSong(item)"></i>
-                        </div>
-                    </li>
-                </ul>
+                            <div class="hover-actions">
+                                <i data-feather="edit-2" ng-click="renameSongModalShow(item)"></i>
+                                <i data-feather="download" ng-click="downloadSong(item)"></i>
+                                <i data-feather="share-2" ng-click="shareSongs([item._id])"></i>
+                                <i data-feather="x-square" ng-if="music.currentSongId !== item._id"
+                                   ng-click="removeSong(item)"></i>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
                 <div class="extra">
                     <div class="lyrics">
                         <span class="line"
@@ -159,6 +167,7 @@
                         </div>
                     </div>
                 </div>
+                <ul class="col-5 search music-container"></ul>
             </div>
             <div class="footer">
                 <span ng-if="!music.currentSongTitle || !music.currentPlayingPlaylistName"></span>

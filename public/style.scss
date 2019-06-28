@@ -1,3 +1,40 @@
+// Animations
+@-webkit-keyframes slide-top {
+  0% { opacity: 0; -webkit-transform: translateY(-100%); }
+  100% { opacity: 1; -webkit-transform: translateY(0); }
+}
+@-moz-keyframes slide-top {
+  0% { opacity: 0; -webkit-transform: translateY(-100%); }
+  100% { opacity: 1; -webkit-transform: translateY(0); }
+}
+
+@-webkit-keyframes slide-bottom {
+  0% { opacity: 0; -webkit-transform: translateY(100%); }
+  100% { opacity: 1; -webkit-transform: translateY(0); }
+}
+@-moz-keyframes slide-bottom {
+  0% { opacity: 0; -webkit-transform: translateY(100%); }
+  100% { opacity: 1; -webkit-transform: translateY(0); }
+}
+
+@-webkit-keyframes slide-left {
+  0% { opacity: 0; -webkit-transform: translateX(-100%); }
+  100% { opacity: 1; -webkit-transform: translateY(0); }
+}
+@-moz-keyframes slide-left {
+  0% { opacity: 0; -moz-transform: translateX(-100%); }
+  100% { opacity: 1; -moz-transform: translateY(0); }
+}
+
+@-webkit-keyframes slide-right {
+  0% { opacity: 0; -webkit-transform: translateX(100%); }
+  100% { opacity: 1; -webkit-transform: translateY(0); }
+}
+@-moz-keyframes slide-right {
+  0% { opacity: 0; -moz-transform: translateX(100%); }
+  100% { opacity: 1; -moz-transform: translateY(0); }
+}
+
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important;
 }
@@ -78,7 +115,7 @@ body {
   overflow-x: hidden;
   overflow-y: hidden;
 
-  //background: url(wallp.jpeg) no-repeat center center fixed;
+  //background: url(wallp.jpg) no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -166,13 +203,15 @@ body {
   }
 
   form {
+    -webkit-animation: slide-top .4s ease-out;
+    -moz-animation: slide-top .4s ease-out;
     width: 20%;
   }
 }
 
 // Colors && vars
-$main: rgba(33,33,33,0.4);
-$item: rgba(0,0,0,0.1);
+$main: rgba(33,33,33,0.2);
+$item: rgba(33,33,33,0.2);
 $item-active: rgba(0,0,0,0.3);
 $controls: rgba(white, 0.8);
 $header-height: 45px;
@@ -183,6 +222,8 @@ $footer-height: 25px;
   flex-direction: column;
 
   .player {
+    -webkit-animation: slide-top .4s ease-out;
+    -moz-animation: slide-top .4s ease-out;
     display: flex;
     flex-direction: row;
     width: 100%;
@@ -277,10 +318,11 @@ $footer-height: 25px;
       background-color: $item;
       color: $controls;
       border-radius: 5px;
-      margin: 4px 0;
+      margin: 3px 0;
       padding: 7px 12px;
       min-height: 38px;
       justify-content: space-between;
+      border: 0.5px solid rgba(black, 0.2);
 
       .hover-actions {
         flex-direction: row;
@@ -340,7 +382,7 @@ $footer-height: 25px;
       }
     }
 
-    .playlists, .songs, .extra{
+    .playlists, .search, .extra {
       padding: 3px 10px;
       border-radius: 5px;
       display: flex;
@@ -353,9 +395,57 @@ $footer-height: 25px;
       margin-bottom: 4px;
     }
 
+    .search {
+      -webkit-animation: slide-right .4s ease-out;
+      -moz-animation: slide-right .4s ease-out;
+    }
+
+    .playlists {
+      -webkit-animation: slide-left .4s ease-out;
+      -moz-animation: slide-left .4s ease-out;
+    }
+
+    .songs {
+      -webkit-animation: slide-left .4s ease-out;
+      -moz-animation: slide-left .4s ease-out;
+      padding: 3px 10px;
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - #{$header-height} - 18px - #{$footer-height});
+      background-color: $main;
+      margin-right: 4px;
+      margin-bottom: 4px;
+      overflow-y: hidden;
+      overflow-x: hidden;
+
+      .playlist-back {
+        &-icon {
+          margin-right: 5px;
+          cursor: pointer;
+        }
+
+        &-span {
+          text-align: center;
+        }
+      }
+
+      #songs-container {
+        overflow-y: scroll;
+        overflow-x: hidden;
+        padding-left: 0;
+
+        .item {
+          margin: 6px 4px 0 0;
+        }
+      }
+    }
+
     .extra {
+      -webkit-animation: slide-bottom .4s ease-out;
+      -moz-animation: slide-bottom .4s ease-out;
       width: 100%;
-      margin-right: 0;
+      margin-left: 0;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
@@ -403,6 +493,7 @@ $footer-height: 25px;
         overflow-y: scroll;
         border-radius: 5px;
         padding: 3px 10px;
+        border: 0.5px solid rgba(black, 0.2);
 
         .item {
           justify-content: space-between;
@@ -417,6 +508,8 @@ $footer-height: 25px;
   }
 
   .footer {
+    -webkit-animation: slide-bottom .4s ease-out;
+    -moz-animation: slide-bottom .4s ease-out;
     display: flex;
     flex-direction: row;
     align-self: center;

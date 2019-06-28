@@ -9,6 +9,15 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         inited: false
     };
 
+    $scope.modePlaylists = true;
+    $scope.modePlaylistsTurnOn = () => {
+        $scope.music.currentPlaylistName = '';
+        $scope.music.currentPlaylistId = null;
+        $scope.music.currentPlaylistSongs = [];
+        $scope.modePlaylists = true;
+    };
+    $scope.setModePlaylists = state => $scope.modePlaylists = state;
+
     $scope.queue = {};
     socket.on('progress:start', function (data) {
         $scope.queue[data.videoId] = {
@@ -321,7 +330,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         let offset = id ? angular.element(`#song-${id}`) &&
             angular.element(`#song-${id}`)[0] &&
             angular.element(`#song-${id}`)[0].offsetTop &&
-            angular.element(`#song-${id}`)[0].offsetTop - 6 : -6;
+            angular.element(`#song-${id}`)[0].offsetTop - 12 : -12;
         if (offset) {
             console.log(offset);
             angular.element('#songs-container').animate({
@@ -345,6 +354,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
                     } else {
                         $scope.scrollToSong();
                     }
+                    $scope.modePlaylists = false;
                 }
             })
             .catch(err => Notification.info(err.data))
@@ -705,7 +715,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     $scope.getWallp = () => {
         return $scope.user && $scope.user.backgroundToggle && $scope.user.background ?
             `url(${`/user/background/${$scope.user.background}`})` :
-            'url(wallp.jpeg)';
+            'url(wallp.jpg)';
     };
 
     $scope.backgroundAction = () => {
