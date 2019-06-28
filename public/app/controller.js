@@ -330,7 +330,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         let offset = id ? angular.element(`#song-${id}`) &&
             angular.element(`#song-${id}`)[0] &&
             angular.element(`#song-${id}`)[0].offsetTop &&
-            angular.element(`#song-${id}`)[0].offsetTop - 12 : -12;
+            angular.element(`#song-${id}`)[0].offsetTop - 3 : -3;
         if (offset) {
             console.log(offset);
             angular.element('#songs-container').animate({
