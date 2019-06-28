@@ -35,6 +35,7 @@ mongoose.connect(`mongodb://${app.env.DB_CONNECTION}`, { useNewUrlParser: true }
         return process.exit(1);
     }
     console.log('Successfully connected to db');
+
     configureApp(app);
 });
 
@@ -160,6 +161,14 @@ function configureApp(app) {
         });
         httpsServer.listen(app.env.PORT);
     }
+
+}
+
+function backupDB() {
+
+}
+
+function restoreDB() {
 
 }
 

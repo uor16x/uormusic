@@ -31,6 +31,7 @@
     "bootstrap": "^4.2.1",
     "cheerio": "^1.0.0-rc.2",
     "dotenv-safe": "^6.1.0",
+    "empty-folder": "^2.0.3",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
     "feather-icons": "^4.15.0",
@@ -47,6 +48,7 @@
     "ng-media-events": "^1.0.3",
     "ng-popover": "^2.0.0",
     "node-fetch": "^2.3.0",
+    "node-unzip-2": "^0.2.8",
     "node-uuid": "^1.4.8",
     "password-hash-node": "^1.0.0",
     "qs": "^6.6.0",
@@ -56,7 +58,8 @@
     "url": "^0.11.0",
     "youtube-mp3-downloader": "^0.5.3",
     "youtube.get-video-info": "^1.0.1",
-    "ytdl-core": "^0.29.1"
+    "ytdl-core": "^0.29.1",
+    "zip-a-folder": "0.0.8"
   },
   "devDependencies": {
     "node-sass": "^4.11.0"
