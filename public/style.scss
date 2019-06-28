@@ -229,6 +229,18 @@ body {
   justify-content: center;
   height: 100%;
 
+  .tip {
+    padding: 5px;
+    min-height: 50px;
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 11px;
+  }
+
   button {
     width: 100%;
   }

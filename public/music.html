@@ -82,7 +82,7 @@
                 </div>
             </div>
             <div class="panels">
-                <ul ng-if="modePlaylists" class="col-4 playlists music-container"
+                <ul ng-if="modePlaylists" class="col-5 playlists music-container"
                     ui-sortable="sortablePlaylists"
                     ng-model="user.playlists">
                         <li class="item"
@@ -102,7 +102,7 @@
                         </div>
                     </li>
                 </ul>
-                <div ng-if="!modePlaylists" class="col-4 songs music-container">
+                <div ng-if="!modePlaylists" class="col-5 songs music-container">
                     <li class="item playlist-back" ng-click="modePlaylistsTurnOn()">
                         <i class="playlist-back-icon" data-feather="arrow-left-circle"><</i>
                         <span class="cut playlist-back-span">{{music.currentPlaylistName}}</span>
@@ -129,7 +129,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="extra">
+                <div class="extra" ng-if="false">
                     <div class="lyrics">
                         <span class="line"
                               ng-if="!music.loadingSongData && music.currentSongData && music.currentSongData.lyrics"
@@ -167,7 +167,9 @@
                         </div>
                     </div>
                 </div>
-                <ul class="col-5 search music-container"></ul>
+                <div class="col-7 search music-container">
+                    <span>VK/Youtube search: development in progress</span>
+                </div>
             </div>
             <div class="footer">
                 <span ng-if="!music.currentSongTitle || !music.currentPlayingPlaylistName"></span>
@@ -193,6 +195,9 @@
         </div>
         <div class="auth" ng-if="!user && !loading">
             <form>
+                <div class="tip">
+                    <span>Use the fields below to log in/sign up</span>
+                </div>
                 <div class="form-group">
                     <input type="text" autofocus
                            class="form-control"
