@@ -25,6 +25,15 @@ process.env['FFPROBE_PATH'] = ffmpegPath;
  */
 dotenv.config();
 const app = express();
+app.use (function (req, res, next) {
+    if (req.secure) {
+        // request was via https, so do no special handling
+        next();
+    } else {
+        // request was via http, so redirect to https
+        res.redirect('https://' + req.headers.host + req.url);
+    }
+});
 app.env = process.env;
 
 /**
@@ -161,11 +170,11 @@ function configureApp(app) {
             });
         });
         httpsServer.listen(app.env.PORT);
-        http.createServer((req, res) => {
+        http.createServer(function (req, res) {
             res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
             res.end();
         }).listen(80);
     }
-}
 
+}
 
