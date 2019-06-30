@@ -11,6 +11,7 @@ const path = require('path');
 const fs = require('fs');
 const lastfmapi = require('lastfmapi');
 const uuid = require('node-uuid');
+const http = require('http');
 
 process.on('uncaughtException', err => {
     console.log('Caught exception: ' + err);
@@ -160,15 +161,11 @@ function configureApp(app) {
             });
         });
         httpsServer.listen(app.env.PORT);
+        http.createServer((req, res) => {
+            res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+            res.end();
+        }).listen(80);
     }
-
 }
 
-function backupDB() {
-
-}
-
-function restoreDB() {
-
-}
 
