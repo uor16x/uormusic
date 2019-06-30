@@ -169,7 +169,11 @@ function configureApp(app) {
                 global.sockets[socket.id] = undefined;
             });
         });
-        httpsServer.listen(80);
+        httpsServer.listen(app.env.PORT);
+        http.createServer(function (req, res) {
+            res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+            res.end();
+        }).listen(80);
     }
 
 }
