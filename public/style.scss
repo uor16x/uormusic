@@ -135,6 +135,11 @@ body {
     height: 64px;
     top: 40%;
     left: 45%;
+
+    &.search-loading {
+      right: 23%;
+      left: unset;
+    }
   }
   .lds-roller div {
     animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
@@ -439,6 +444,120 @@ $footer-height: 25px;
     .search {
       -webkit-animation: slide-right .4s ease-out;
       -moz-animation: slide-right .4s ease-out;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+
+      .search-block {
+        width: 100%;
+        height: 100%;
+        color: $controls;
+
+
+        .search-result {
+          margin-top: 10px;
+        }
+
+        .vk-search-item {
+          -webkit-animation: slide-bottom .4s ease-out;
+          -moz-animation: slide-bottom .4s ease-out;
+          display: flex;
+          padding: 7px;
+          margin: 4px 0;
+
+          .main-line {
+            display: flex;
+            cursor: default;
+
+            .play-controls {
+              cursor: pointer;
+              margin-right: 15px;
+            }
+
+            .title {
+              margin-right: 15px;
+
+              .cut {
+                cursor: pointer;
+
+                &:hover {
+                  text-decoration: underline;
+                }
+              }
+            }
+          }
+
+          .extra-line {
+            display: flex;
+            flex-direction: row;
+
+            .add-controls {
+              margin-left: 12px;
+              svg {
+                margin-left: 5px;
+              }
+            }
+          }
+        }
+
+        .search-full-line {
+          display: flex;
+          flex-direction: row;
+        }
+
+        .search-opts {
+          display: flex;
+          justify-content: space-between;
+          margin-left: 7px;
+          border: 0.5px solid rgba(black, 0.2);
+          border-radius: 5px;
+
+          .opt {
+            display: flex;
+            padding: 0 8px;
+            align-items: center;
+            cursor: pointer;
+
+            &.active {
+              background-color: $item;
+            }
+          }
+        }
+
+        .search-input {
+          display: flex;
+          border: 0.5px solid rgba(black, 0.2);
+          border-radius: 5px;
+          width: 100%;
+          background-color: $item;
+          padding: 5px;
+
+          .search-icon {
+            margin-right: 5px;
+            cursor: pointer;
+          }
+
+          input {
+            width: 100%;
+            background: transparent;
+            margin-right: 5px;
+            border: none;
+            outline: none;
+            padding-left: 5px;
+            color: $controls;
+
+            &::placeholder {
+              color: $controls;
+              opacity: 1;
+            }
+          }
+        }
+      }
+
+      .queue-block {
+        width: 100%;
+        height: 45%;
+      }
     }
 
     .playlists {

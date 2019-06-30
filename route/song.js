@@ -2,6 +2,7 @@ const router = require('express').Router();
 const ytb = require('../helper/youtube');
 const fetch = require("node-fetch");
 const cheerio = require('cheerio');
+const axios = require('axios');
 const path = require('path');
 
 const concurrency = 5;
@@ -40,6 +41,36 @@ const idParser = link => {
 };
 
 module.exports = app => {
+    router.get('/search/:mode/:query', async (req, res) => {
+        if (!req.params.mode || !req.params.query) {
+            return res.result('Mode or query missing');
+        }
+        if (req.params.mode === 'VK') {
+            axios.get(`https://vrit.me/audios205372980?q=${encodeURIComponent(req.params.query)}`)
+                .then(response => {
+                    const page = cheerio.load(response.data);
+                    const audioEntries = page('.info');
+                    const audios = [];
+                    for (let i = 0; i < audioEntries.length; i++) {
+                        const currentAudioEntry = cheerio.load(audioEntries[i]);
+                        audios.push({
+                            title: `${currentAudioEntry('.artist')[0].children[0].data} - ${currentAudioEntry('.title')[0].children[0].data}`,
+                            duration: currentAudioEntry('.duration')[0].children[0].data,
+                            url: 'https://vrit.me' + currentAudioEntry('a')[0].attribs.href
+                        });
+                    }
+                    return res.result(null, audios);
+                })
+                .catch(err => {
+                    return res.result(err);
+                });
+        } else if (req.params.mode === 'YT') {
+            return res.result(null, []);
+        } else {
+            return res.result('Unrecognized mode');
+        }
+    });
+
     router.post('/youtube', (req, res) => {
         if (!req.body.playlistId) {
             return res.result('Playlist id missing');

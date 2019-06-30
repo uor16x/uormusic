@@ -121,4 +121,7 @@ function MusicService($http) {
     this.getLfmLink = function (socketId) {
         return $http.get(`/lfm/${socketId}`);
     }
+    this.search = function (mode, query) {
+        return $http.get(`/song/search/${mode}/${query}`);
+    }
 }

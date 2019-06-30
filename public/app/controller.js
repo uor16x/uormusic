@@ -88,6 +88,7 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         scrobbled: false,
         loadingSongData: false,
         audio: $('#audio')[0],
+        vkaudio: $('#vkaudio')[0],
 
         currentTime: '00:00',
         durationTime: '00:00',
@@ -119,7 +120,11 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         youtubeLinks: [''],
         addFromYTMode: false,
 
-        sharePlaylistSongs: []
+        sharePlaylistSongs: [],
+
+        searchOpt: 'VK',
+        searchLine: '',
+        searchLoading: false
     };
     $scope.sortablePlaylists = {
         stop: () => {
@@ -333,7 +338,6 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
             angular.element(`#song-${id}`)[0].offsetTop &&
             angular.element(`#song-${id}`)[0].offsetTop - 51 : -51;
         if (offset) {
-            console.log(offset);
             angular.element('#songs-container').animate({
                 scrollTop: offset
             }, 600);
@@ -872,6 +876,59 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
         const url = `https://www.google.com/search?q=${query}+lyrics`;
         window.open(url, 'Google Lyrics Search',
             `scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,height=${screen.availHeight-200},width=${screen.availWidth-200},top=50,left=50`)
+    };
+
+    $scope.changeSearchMode = mode => {
+        if ($scope.music.searchOpt !== mode) {
+            $scope.music.searchOpt = mode;
+            if ($scope.music.searchLine) {
+                $scope.search();
+            }
+        }
+    };
+    $scope.search = (query) => {
+        if (query) {
+            $scope.music.searchLine = query;
+        }
+        $scope.music.vkaudio.pause();
+        $scope.music.vkaudio.src = '';
+        if (!$scope.music.searchLine) {
+            return $scope.music.searchResults = [];
+        }
+        $scope.music.searchResults = [];
+        $scope.music.searchLoading = true;
+        MusicService.search($scope.music.searchOpt, $scope.music.searchLine)
+            .then(response => {
+                if (response && response.data) {
+                    console.log(response.data);
+                    $scope.music.searchResults = response.data;
+                }
+            })
+            .catch(err => Notification.info(err.data))
+            .finally(() => {
+                $scope.music.searchLoading = false;
+            });
+    };
+
+    $scope.toggleVkAudio = audio => {
+        if (audio.playing) {
+            $scope.music.vkaudio.pause();
+            audio.playing = false;
+        } else {
+            $scope.pause();
+            $scope.music.vkaudio.pause();
+            $scope.music.searchResults.forEach(item => item.playing = false);
+            $scope.music.vkaudio.src = audio.url;
+            $scope.music.vkaudio.play();
+            audio.playing = true;
+        }
+    };
+
+    $scope.downloadVKSong = (item) => {
+        const link = document.createElement('a');
+        link.download = `${item.title}.mp3`;
+        link.href = item.url;
+        link.click();
     };
 
 }

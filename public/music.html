@@ -13,7 +13,9 @@
         <input class="hidden-inputs" id="newSongDisk" multiple file-model="music.newSongFile" type="file" accept="audio/*"/>
         <input class="hidden-inputs" id="backgroundInput" file-model="music.backgroundFile" type="file" accept="image/*"/>
         <audio id="audio" ng-timeupdate="updateTime()" onended="angular.element(this).scope().next()"></audio>
+        <audio id="vkaudio"></audio>
         <div ng-if="loading" class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        <div ng-if="music.searchLoading" class="lds-roller search-loading"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
         <div class="music" ng-if="user">
             <div class="player">
                 <div class="col-1 controls">
@@ -82,7 +84,7 @@
                 </div>
             </div>
             <div class="panels">
-                <ul ng-if="modePlaylists" class="col-5 playlists music-container"
+                <ul ng-if="modePlaylists" class="col-6 playlists music-container"
                     ui-sortable="sortablePlaylists"
                     ng-model="user.playlists">
                         <li class="item"
@@ -96,16 +98,16 @@
                         </span>
                         <div class="hover-actions">
                             <i data-feather="edit-2" ng-click="renamePlaylistModalShow(item)"></i>
-                            <i data-feather="upload" ng-click="addSongModalShow(item)"></i>
                             <i data-feather="share-2" ng-click="sharePlaylist(item)"></i>
                             <i data-feather="x-square" ng-click="removePlaylist(item)"></i>
                         </div>
                     </li>
                 </ul>
-                <div ng-if="!modePlaylists" class="col-5 songs music-container">
-                    <li class="item playlist-back" ng-click="modePlaylistsTurnOn()">
-                        <i class="playlist-back-icon" data-feather="arrow-left-circle"><</i>
-                        <span class="cut playlist-back-span">{{music.currentPlaylistName}}</span>
+                <div ng-if="!modePlaylists" class="col-6 songs music-container">
+                    <li class="item playlist-back">
+                        <i class="playlist-back-icon" data-feather="arrow-left-circle" ng-click="modePlaylistsTurnOn()"></i>
+                        <span class="cut playlist-back-span" ng-click="modePlaylistsTurnOn()">{{music.currentPlaylistName}}</span>
+                        <i data-feather="upload" ng-click="selectFile()"></i>
                     </li>
                     <ul ng-if="!modePlaylists"
                         id="songs-container"
@@ -130,8 +132,54 @@
                         </li>
                     </ul>
                 </div>
-                <div class="col-7 search music-container">
-                    <span>VK/Youtube search: development in progress</span>
+                <div class="col-6 search music-container">
+                    <div class="search-block">
+                        <div class="search-full-line">
+                            <div class="search-input">
+                                <input type="text"
+                                       ng-model="music.searchLine"
+                                       ng-keyup="$event.keyCode == 13 && search()"
+                                       placeholder="Type and press enter to search...">
+                                <i class="search-icon"
+                                   ng-if="!music.searchLine"
+                                   data-feather="search"></i>
+                                <i class="search-icon"
+                                   ng-if="music.searchLine"
+                                   ng-click="music.searchLine = null; music.searchResults = []"
+                                   data-feather="x"></i>
+                            </div>
+                            <div class="search-opts">
+                                <div class="opt" ng-click="changeSearchMode('VK')"
+                                     ng-class="{'active': music.searchOpt === 'VK'}">VK</div>
+                                <div class="opt" ng-click="changeSearchMode('YT')"
+                                     ng-class="{'active': music.searchOpt === 'YT'}">YT</div>
+                            </div>
+                        </div>
+                        <div class="search-result">
+                            <div ng-if="music.searchOpt === 'VK' && music.searchResults && music.searchResults.length > 0"
+                                 class="item vk-search-item"
+                                 ng-class="{'active': item.playing}"
+                                 ng-repeat="item in music.searchResults">
+                                <div class="main-line">
+                                    <div class="play-controls">
+                                        <i data-feather="play" ng-click="toggleVkAudio(item)" ng-if="!item.playing"></i>
+                                        <i data-feather="pause" ng-click="toggleVkAudio(item)" ng-if="item.playing"></i>
+                                    </div>
+                                    <div class="title">
+                                        <span class="cut title" ng-click="search(item.title)">{{item.title}}</span>
+                                    </div>
+                                </div>
+                                <div class="extra-line">
+                                    <div class="duration">{{item.duration}}</div>
+                                    <div class="add-controls">
+                                        <i data-feather="download" ng-click="downloadVKSong(item)"></i>
+                                        <i data-feather="plus-circle"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="queue-block" ng-if="getKeysLength(queue) > 0"></div>
                 </div>
             </div>
             <div class="footer">
