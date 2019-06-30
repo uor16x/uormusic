@@ -80,7 +80,7 @@ function restore() {
                 models.song.create(dump.song),
                 models.file.create(dump.file),
             ]);
-        })
+        }).then(() => console.log('Restore finished'))
         /*.then(() => {
             console.log('Data restored');
             return new Promise((resolve, reject) => {

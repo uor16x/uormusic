@@ -143,9 +143,9 @@ function configureApp(app) {
             console.log('Server started');
         });
     } else {
-        const privateKey = fs.readFileSync('/etc/letsencrypt/live/mymusiclib.com.ua/privkey.pem', 'utf8');
-        const certificate = fs.readFileSync('/etc/letsencrypt/live/mymusiclib.com.ua/cert.pem', 'utf8');
-        const ca = fs.readFileSync('/etc/letsencrypt/live/mymusiclib.com.ua/chain.pem', 'utf8');
+        const privateKey = fs.readFileSync('/etc/letsencrypt/live/uormusic.info/privkey.pem', 'utf8');
+        const certificate = fs.readFileSync('/etc/letsencrypt/live/uormusic.info/cert.pem', 'utf8');
+        const ca = fs.readFileSync('/etc/letsencrypt/live/uormusic.info/chain.pem', 'utf8');
         const credentials = {
             key: privateKey,
             cert: certificate,
