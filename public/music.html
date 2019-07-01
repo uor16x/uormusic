@@ -155,31 +155,65 @@
                                      ng-class="{'active': music.searchOpt === 'YT'}">YT</div>
                             </div>
                         </div>
-                        <div class="search-result">
+                        <div class="queue-block" ng-if="queue.length > 0">
+                            <div class="item" ng-repeat="queueItem in queue">
+                                <div>
+                                <span class="cut">
+                                    {{queueItem.title}}
+                                    <i data-feather="arrow-right"></i>
+                                    {{getQueuePlaylistName(queueItem.playlistId)}}
+                                </span>
+                                </div>
+                                <div>
+                                <span class="cut">
+                                     {{queueItem.status}}
+                                </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="search-result" ng-class="{
+                        'full': queue.length === 0,
+                        'cut': queue.length > 0
+                    }">
                             <div ng-if="music.searchOpt === 'VK' && music.searchResults && music.searchResults.length > 0"
                                  class="item vk-search-item"
                                  ng-class="{'active': item.playing}"
                                  ng-repeat="item in music.searchResults">
-                                <div class="main-line">
-                                    <div class="play-controls">
-                                        <i data-feather="play" ng-click="toggleVkAudio(item)" ng-if="!item.playing"></i>
-                                        <i data-feather="pause" ng-click="toggleVkAudio(item)" ng-if="item.playing"></i>
+                                <div class="line">
+                                    <div class="main-line">
+                                        <div class="play-controls">
+                                            <i data-feather="play" ng-click="toggleVkAudio(item)" ng-if="!item.playing"></i>
+                                            <i data-feather="pause" ng-click="toggleVkAudio(item)" ng-if="item.playing"></i>
+                                        </div>
+                                        <div class="title">
+                                            <span class="cut title" ng-click="search(item.title)">{{item.title}}</span>
+                                        </div>
                                     </div>
-                                    <div class="title">
-                                        <span class="cut title" ng-click="search(item.title)">{{item.title}}</span>
+                                    <div class="extra-line">
+                                        <div class="duration">{{item.duration}}</div>
+                                        <div class="add-controls">
+                                            <i data-feather="download" ng-click="downloadVKSong(item)"></i>
+                                            <i data-feather="folder-plus"
+                                               ng-if="music.currentPlaylistId"
+                                               ng-click="uploadSongVK(item)"
+                                            ></i>
+                                            <i data-feather="list" ng-click="item.adding = true"
+                                               ng-if="!item.adding"></i>
+                                            <i data-feather="minus-circle" ng-click="item.adding = false"
+                                               ng-if="item.adding"></i>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="extra-line">
-                                    <div class="duration">{{item.duration}}</div>
-                                    <div class="add-controls">
-                                        <i data-feather="download" ng-click="downloadVKSong(item)"></i>
-                                        <i data-feather="plus-circle"></i>
+                                <div class="playlists-add-list" ng-if="item.adding">
+                                    <div class="row plist-row" ng-repeat="plistRow in music.groupedPlaylists">
+                                        <div class="col-3 plist-col" ng-repeat="plistCol in plistRow" ng-click="uploadSongVK(item, plistCol.id)">
+                                            <span class="cut">{{plistCol.name}}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="queue-block" ng-if="getKeysLength(queue) > 0"></div>
                 </div>
             </div>
             <div class="footer">
@@ -196,7 +230,7 @@
                         <span>Add playlist</span>
                     </div>
                     <div class="span-wrapper" data-toggle="modal" data-target="#queueModal">
-                        <span>Queue: {{getKeysLength(queue)}}</span>
+                        <span>Queue</span>
                     </div>
                     <div class="span-wrapper" data-toggle="modal" data-target="#settingsModal">
                         <span>Settings</span>

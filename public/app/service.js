@@ -123,5 +123,14 @@ function MusicService($http) {
     }
     this.search = function (mode, query) {
         return $http.get(`/song/search/${mode}/${query}`);
-    }
+    };
+    this.uploadSongVK = function (title, url, duration, playlistId, socketId) {
+        return $http.post('/song/vk', {
+            playlistId,
+            title,
+            duration,
+            url,
+            socketId
+        });
+    };
 }

@@ -257,9 +257,10 @@ body {
 
 // Colors && vars
 $main: rgba(33,33,33,0.2);
-$item: rgba(33,33,33,0.2);
-$item-active: rgba(0,0,0,0.3);
-$controls: rgba(white, 0.8);
+$item: rgba(33,33,33,0.45);
+$item-active: rgba(0,0,0,0.38);
+$item-border: rgba(white, 0.35);
+$controls: rgba(white, 0.9);
 $header-height: 45px;
 $footer-height: 25px;
 
@@ -368,7 +369,7 @@ $footer-height: 25px;
       padding: 7px 12px;
       min-height: 38px;
       justify-content: space-between;
-      border: 0.5px solid rgba(black, 0.2);
+      border: 0.5px solid $item-border;
 
       .hover-actions {
         flex-direction: row;
@@ -447,27 +448,71 @@ $footer-height: 25px;
       padding: 6px;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
+      overflow-y: hidden;
 
       .search-block {
         width: 100%;
-        height: 100%;
         color: $controls;
+        height: 100%;
 
 
         .search-result {
           margin-top: 10px;
+          overflow-y: scroll;
+          padding-bottom: 8px;
+
+          &.full {
+            height: 100%;
+          }
+
+          &.cut {
+            height: 60%;
+          }
         }
 
         .vk-search-item {
           -webkit-animation: slide-bottom .4s ease-out;
           -moz-animation: slide-bottom .4s ease-out;
           display: flex;
+          flex-direction: column;
           padding: 7px;
           margin: 4px 0;
+
+          .playlists-add-list {
+            -webkit-animation: slide-right .4s ease-out;
+            -moz-animation: slide-right .4s ease-out;
+            margin-top: 10px;
+
+            .plist-row {
+              display: flex;
+              margin: 0;
+              justify-content: space-between;
+
+              .plist-col {
+                display: flex;
+                justify-content: center;
+                padding: 3px;
+                border-radius: 10px;
+                border: 0.5px solid $item-border;
+                cursor: pointer;
+                color: $controls;
+                background-color: $item;
+                text-align: center;
+              }
+            }
+          }
+
+          .line {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+          }
 
           .main-line {
             display: flex;
             cursor: default;
+            max-width: 75%;
 
             .play-controls {
               cursor: pointer;
@@ -479,6 +524,7 @@ $footer-height: 25px;
 
               .cut {
                 cursor: pointer;
+                white-space: normal;
 
                 &:hover {
                   text-decoration: underline;
@@ -490,11 +536,12 @@ $footer-height: 25px;
           .extra-line {
             display: flex;
             flex-direction: row;
+            max-width: 20%;
 
             .add-controls {
-              margin-left: 12px;
+              margin-left: 16px;
               svg {
-                margin-left: 5px;
+                margin-left: 8px;
               }
             }
           }
@@ -503,30 +550,31 @@ $footer-height: 25px;
         .search-full-line {
           display: flex;
           flex-direction: row;
+          margin-bottom: 7px;
         }
 
         .search-opts {
           display: flex;
           justify-content: space-between;
           margin-left: 7px;
-          border: 0.5px solid rgba(black, 0.2);
-          border-radius: 5px;
 
           .opt {
             display: flex;
             padding: 0 8px;
             align-items: center;
             cursor: pointer;
+            border: 0.5px solid $item-border;
+            border-radius: 5px;
 
             &.active {
-              background-color: $item;
+              background-color: $item-active;
             }
           }
         }
 
         .search-input {
           display: flex;
-          border: 0.5px solid rgba(black, 0.2);
+          border: 0.5px solid $item-border;
           border-radius: 5px;
           width: 100%;
           background-color: $item;
@@ -552,11 +600,26 @@ $footer-height: 25px;
             }
           }
         }
-      }
 
-      .queue-block {
-        width: 100%;
-        height: 45%;
+        .queue-block {
+          -webkit-animation: slide-bottom .4s ease-out;
+          -moz-animation: slide-bottom .4s ease-out;
+          padding: 12px 6px 6px 6px;
+          width: 100%;
+          height: 32%;
+          background-color: $item;
+          border-radius: 5px;
+          overflow-y: scroll;
+
+          .item {
+            -webkit-animation: slide-bottom .4s ease-out;
+            -moz-animation: slide-bottom .4s ease-out;
+          }
+
+          .cut {
+            white-space: normal;
+          }
+        }
       }
     }
 
@@ -754,7 +817,7 @@ $footer-height: 25px;
     overflow-y: scroll;
     border-radius: 5px;
     padding: 3px 10px;
-    border: 0.5px solid rgba(black, 0.2);
+    border: 0.5px solid $item-border;
 
     .item {
       justify-content: space-between;

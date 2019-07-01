@@ -1,4 +1,4 @@
-function MainController($scope, $location, $anchorScroll, debounce, AuthService, MusicService, Notification, socket) {
+function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthService, MusicService, Notification, socket) {
     $('.modal').on('shown.bs.modal', function() {
         $(this).find('[autofocus]').focus();
     });
@@ -18,36 +18,84 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     };
     $scope.setModePlaylists = state => $scope.modePlaylists = state;
 
-    $scope.queue = {};
-    socket.on('progress:start', function (data) {
-        $scope.queue[data.videoId] = {
-            title: data.title,
-            percentage: 'Queued'
-        };
+    $scope.queue = [];
+    function queueIndexById(id) {
+        return $scope.queue.findIndex(item => item.id === id);
+    }
+    function spliceQueue(index) {
+        if ($scope.queue.length === 1) {
+            return $scope.queue = [];
+        }
+        $scope.queue.splice(index, 1);
+    }
+    socket.on('progress:init', function (data) {
+        const index = queueIndexById(data.id);
+        if (index === -1) {
+            $scope.queue = [{
+                title: data.title,
+                playlistId: data.playlistId,
+                status: 'In queue...',
+                id: data.id
+            }, ...$scope.queue];
+        } else {
+            $scope.queue[index] = {
+                title: data.title,
+                playlistId: data.playlistId,
+                status: 'In queue...',
+                id: data.id
+            };
+        }
+    });
+    socket.on('progress:download', function (data) {
+        const index = queueIndexById(data.id);
+        if (index === -1) {
+            $scope.queue = [{
+                title: data.title,
+                playlistId: data.playlistId,
+                status: 'In queue...',
+                id: data.id
+            }, ...$scope.queue];
+        } else {
+            $scope.queue[index] = {
+                title: data.title,
+                playlistId: data.playlistId,
+                status: 'Downloading...',
+                id: data.id
+            };
+        }
+    });
+    socket.on('progress:encode', function (data) {
+        const index = queueIndexById(data.id);
+        if (index === -1) {
+            $scope.queue = [{
+                title: data.title,
+                playlistId: data.playlistId,
+                status: 'In queue...',
+                id: data.id
+            }, ...$scope.queue];
+        } else {
+            $scope.queue[index] = {
+                title: data.title,
+                playlistId: data.playlistId,
+                status: 'Encoding...',
+                id: data.id
+            };
+        }
     });
     socket.on('progress:fail', function (data) {
-        $scope.queue[data.videoId].failed = true;
-        setTimeout(() => {
-            delete $scope.queue[data.videoId];
-        }, 1500);
+        const index = queueIndexById(data.id);
+        Notification.error($scope.queue[index].title + ' failed!');
+        spliceQueue(index);
     });
-    socket.on('progress:update', function (data) {
-        $scope.queue[data.videoId].title = data.title;
-        $scope.queue[data.videoId].percentage = Math.floor(data.progress) + '%';
-        $scope.queue[data.videoId].eta = data.eta > 3 ? data.eta / 3 : 0;
-        if ($scope.queue[data.videoId].percentage === '100%') {
-            $scope.queue[data.videoId].percentage = 'Encoding...';
-        }
-    });
+
     socket.on('progress:finish', function (data) {
-        Notification.primary(`Finished: ${$scope.queue[data.videoId].title}`);
-        $scope.queue[data.videoId].finished = true;
-        if (data.plist === $scope.music.currentPlaylistId) {
+        const index = queueIndexById(data.id);
+        $scope.queue[index].status = 'Done!';
+        if (data.playlistId === $scope.music.currentPlaylistId) {
             $scope.music.currentPlaylistSongs.unshift(data.newSong);
         }
-        setTimeout(() => {
-            delete $scope.queue[data.videoId];
-        }, 1500);
+        Notification.info($scope.queue[index].title + ' finished!');
+        spliceQueue(index);
     });
     socket.on('lastfm:access', function (data) {
         if ($scope.lastFMWinRef) {
@@ -124,7 +172,8 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
 
         searchOpt: 'VK',
         searchLine: '',
-        searchLoading: false
+        searchLoading: false,
+        groupedPlaylists: []
     };
     $scope.sortablePlaylists = {
         stop: () => {
@@ -164,6 +213,11 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     $scope.$watch('music.currentSongId', debounce(function() {
         $scope.scrollToSong($scope.music.currentSongId);
     }, 300), true);
+    $scope.$watch('user', () => {
+        if ($scope.user && $scope.user.playlists) {
+            $scope.music.groupedPlaylists = $scope.getGroupedPlaylists(4);
+        }
+    }, true);
 
     $scope.authPost = function () {
         if (!$scope.authData.username) {
@@ -927,8 +981,34 @@ function MainController($scope, $location, $anchorScroll, debounce, AuthService,
     $scope.downloadVKSong = (item) => {
         const link = document.createElement('a');
         link.download = `${item.title}.mp3`;
-        link.href = item.url;
+        link.href = `https://vrit.me${item.url}`;
         link.click();
     };
 
+    $scope.getGroupedPlaylists = count => {
+        const result = [];
+        for (let i = 0; i < $scope.user.playlists.length; i+=count) {
+            result.push($scope.user.playlists.slice(i, i + count));
+        }
+        return result.map(plistRow => {
+            return plistRow.map(plist => {
+                return {
+                    id: plist._id,
+                    name: plist.name
+                }
+            })
+        });
+    };
+
+    $scope.uploadSongVK = (item, plistId) => {
+        plistId = plistId || $scope.music.currentPlaylistId;
+        item.adding = false;
+        MusicService.uploadSongVK(item.title, item.url, item.duration, plistId, socket.getId())
+            .catch(err => Notification.info(err.data));
+    };
+
+    $scope.getQueuePlaylistName = id => {
+        const plist = $scope.user.playlists.find(plist => plist._id === id);
+        return plist.name;
+    }
 }

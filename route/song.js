@@ -4,8 +4,12 @@ const fetch = require("node-fetch");
 const cheerio = require('cheerio');
 const axios = require('axios');
 const path = require('path');
+const fs = require('fs');
+const uuid = require('node-uuid');
 
-const concurrency = 5;
+const audio = require('../helper/audio');
+
+const concurrency = 3;
 const activeQueue = [];
 const waitQueue = [];
 
@@ -13,18 +17,10 @@ const checkQueue = () => {
     if (activeQueue.length < concurrency) {
         const elem = waitQueue.pop();
         if (elem) {
-            const retryTimeout = setTimeout(function () {
-                elem(() => {
-                    activeQueue.splice(activeQueue.indexOf(elem), 1);
-                    checkQueue();
-                })
-            }, 1000 * 150);
-            activeQueue.push(elem);
             elem(() => {
-                clearTimeout(retryTimeout);
                 activeQueue.splice(activeQueue.indexOf(elem), 1);
                 checkQueue();
-            });
+            })
         }
     }
 };
@@ -54,9 +50,10 @@ module.exports = app => {
                     for (let i = 0; i < audioEntries.length; i++) {
                         const currentAudioEntry = cheerio.load(audioEntries[i]);
                         audios.push({
+                            id: uuid.v4(),
                             title: `${currentAudioEntry('.artist')[0].children[0].data} - ${currentAudioEntry('.title')[0].children[0].data}`,
                             duration: currentAudioEntry('.duration')[0].children[0].data,
-                            url: 'https://vrit.me' + currentAudioEntry('a')[0].attribs.href
+                            url: currentAudioEntry('a')[0].attribs.href
                         });
                     }
                     return res.result(null, audios);
@@ -139,6 +136,97 @@ module.exports = app => {
            };
            pushQueue(queueItem);
        });
+        return res.result(null);
+    });
+
+    router.post('/vk', (req, res) => {
+        if (!req.body.playlistId) {
+            return res.result('Playlist id missing');
+        }
+        if (!req.body.url) {
+            return res.result('Link missing');
+        }
+        if (!req.body.title) {
+            return res.result('Title missing');
+        }
+        if (!req.body.socketId) {
+            return res.result('SocketId missing');
+        }
+        const songFileName = `./store/${uuid.v4()}`;
+        const socket = global.sockets[req.body.socketId];
+        socket && socket.emit('progress:init', {
+            playlistId: req.body.playlistId,
+            title: req.body.title,
+            id: songFileName
+        });
+        const queueItem = function (queueCB) {
+            setTimeout(() => {
+                const streamFileName = `${songFileName}-DOWNLOADED.mp3`;
+                const file = fs.createWriteStream(streamFileName);
+                const url = 'https://vrit.me' + encodeURI(req.body.url);
+                axios({
+                    url,
+                    method: 'GET',
+                    responseType: 'stream'
+                }).then(response => {
+                    if (response && response.data) {
+                        socket && socket.emit('progress:download', {
+                            playlistId: req.body.playlistId,
+                            title: req.body.title,
+                            id: songFileName
+                        });
+                    }
+                    file.on('finish', () => {
+                        socket && socket.emit('progress:encode', {
+                            playlistId: req.body.playlistId,
+                            title: req.body.title,
+                            id: songFileName
+                        });
+                        audio.increaseBitrate(streamFileName, songFileName, req.body.title, async err => {
+                            if (err) {
+                                console.log(err);
+                                socket && socket.emit('progress:fail', {
+                                    id: songFileName
+                                });
+                                return queueCB();
+                            }
+                            const fileObject = new app.models.file({
+                                path: songFileName
+                            });
+                            fileObject.save(err => {
+                                return err ? console.error(err) : null;
+                            });
+                            const newSong = new app.models.song({
+                                title: req.body.title,
+                                file: fileObject
+                            });
+                            await newSong.save();
+                            const playlist = await app.services.playlist.get({ _id: req.body.playlistId });
+                            if (!playlist) {
+                                return res.result('Error getting playlist');
+                            }
+                            playlist.songs = [newSong._id, ...playlist.songs];
+                            await playlist.save();
+                            socket && socket.emit('progress:finish', {
+                                id: songFileName,
+                                newSong,
+                                playlistId: req.body.playlistId
+                            });
+                            queueCB();
+                        })
+                    });
+                    file.on('error', (err) => {
+                        console.log(err);
+                        socket && socket.emit('progress:fail', {
+                            id: songFileName
+                        });
+                        queueCB();
+                    });
+                    response.data.pipe(file);
+                });
+            }, 500);
+        };
+        pushQueue(queueItem);
         return res.result(null);
     });
 

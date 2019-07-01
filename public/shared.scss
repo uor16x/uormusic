@@ -222,7 +222,7 @@ body {
     border-radius: 5px;
     justify-self: center;
     height: auto;
-    max-height: calc(100% - #{$header-height} - 20px);
+    max-height: calc(100vh - #{$header-height} - 20px);
     width: 50vw;
     padding: 5px 10px;
     overflow-y: scroll;
