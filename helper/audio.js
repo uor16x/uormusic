@@ -1,5 +1,4 @@
 const ffmpeg = require("fluent-ffmpeg");
-const ffmpegOnProgress = require('ffmpeg-on-progress');
 const path = require('path');
 const fs = require('fs');
 
