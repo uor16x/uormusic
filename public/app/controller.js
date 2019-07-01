@@ -972,7 +972,7 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
             $scope.pause();
             $scope.music.vkaudio.pause();
             $scope.music.searchResults.forEach(item => item.playing = false);
-            $scope.music.vkaudio.src = audio.url;
+            $scope.music.vkaudio.src = 'https://vrit.me' + audio.url;
             $scope.music.vkaudio.play();
             audio.playing = true;
         }
