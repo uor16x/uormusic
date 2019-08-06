@@ -71,7 +71,7 @@ module.exports = app => {
         if (req.params.mode === 'VK') {
             axios.get(`http://api.xn--41a.ws/api.php?method=search&q=${encodeURIComponent(req.params.query)}&key=${app.env.VK_API_KEY}`)
                 .then(response => {
-                    const audios = parseSearchResponse(response.data.list);
+                    const audios = response.data.list ? parseSearchResponse(response.data.list) : [];
                     return res.result(null, audios);
                 })
                 .catch(err => {
