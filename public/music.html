@@ -148,7 +148,7 @@
                                    ng-click="music.searchLine = null; music.searchResults = []"
                                    data-feather="x"></i>
                             </div>
-                            <div class="search-opts">
+                            <div class="search-opts" ng-if="false">
                                 <div class="opt" ng-click="changeSearchMode('VK')"
                                      ng-class="{'active': music.searchOpt === 'VK'}">VK</div>
                                 <div class="opt" ng-click="changeSearchMode('YT')"
@@ -484,7 +484,9 @@
                                 <span>Background</span>
                                 <b ng-if="user.backgroundToggle"> ]</b>
                             </div>
-                            <div class="item" ng-click="lfmAction()">
+                            <div class="item" sglclick="lfmAction(true)"
+                                 title="Double-click to update Last.FM token"
+                                 ng-dblclick="lfmAction(false)">
                                 <b ng-if="user.lastFMToggle">[ </b>
                                 <span>Last.FM</span>
                                 <b ng-if="user.lastFMToggle"> ]</b>

@@ -456,14 +456,36 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
         const stopWatch = $scope.$watch('music.newSongFile', () => {
             if ($scope.music.newSongFile) {
                 stopWatch();
-                const currPlist = $scope.music.addSongsDest._id;
-                $scope.modals.addSong.modal('hide');
-                $scope.loading = true;
-                Notification.info('Upload started...');
-                MusicService.uploadSong(currPlist, $scope.music.newSongFile)
+                const currPlist = $scope.music.currentPlaylistId;
+                Notification.info('Disk upload started...');
+                const diskUploadPrefix = 'Disk upload #';
+                const lastNumber = $scope.queue
+                    .filter(i => i.title.indexOf(diskUploadPrefix) > -1)
+                    .map(i => i.title.replace(diskUploadPrefix, ''))
+                    .map(i => parseInt(i))
+                    .sort((a, b) => b - a)[0];
+                const title = `${diskUploadPrefix}${lastNumber ? lastNumber + 1 : 1}`;
+                let queueObj = {
+                    title,
+                    playlistId: currPlist,
+                    status: 'Downloading...'
+                };
+                $scope.queue.push(queueObj);
+                MusicService.uploadSong($scope.music.currentPlaylistId, $scope.music.newSongFile, e => {
+                    if (e.lengthComputable) {
+                        const percentage = (e.loaded / e.total) * 100;
+                        if (percentage < 100) {
+                            queueObj.status = `Downloading: ${Math.floor(percentage)}%`;
+                        } else {
+                            queueObj.status = `Encoding...`;
+                        }
+                    }
+                })
                     .then(response => {
                         if (response.data) {
-                            Notification.info('Upload finished')
+                            Notification.info('Disk upload finished');
+                            const queueIndex = $scope.queue.findIndex(i => i.title === queueObj.title);
+                            spliceQueue(queueIndex);
                         }
                         if (response.data && currPlist === $scope.music.currentPlaylistId) {
                             $scope.music.currentPlaylistSongs.unshift(...response.data);
@@ -523,6 +545,7 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
     };
 
     $scope.play = () => {
+        $scope.music.vkaudio.pause();
         if (!$scope.music.playing && $scope.music.currentSongId) {
             $scope.music.audio.play();
             $scope.music.playing = true;
@@ -740,8 +763,8 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
      * LFM
      */
     $scope.lastFMWinRef = null;
-    $scope.lfmAction = () => {
-        if ($scope.user.lastFMUsername && $scope.user.lastFMKey) {
+    $scope.lfmAction = (option) => {
+        if ($scope.user.lastFMUsername && $scope.user.lastFMKey && option) {
             $scope.user.lastFMToggle = !$scope.user.lastFMToggle;
             MusicService.setLastFMToggle($scope.user.lastFMToggle)
                 .catch(err => Notification.error(err.data));
@@ -972,7 +995,7 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
             $scope.pause();
             $scope.music.vkaudio.pause();
             $scope.music.searchResults.forEach(item => item.playing = false);
-            $scope.music.vkaudio.src = 'https://vrit.me' + audio.url;
+            $scope.music.vkaudio.src = `/song/vkmp3/${audio.vk_id}/${audio.hash}`;
             $scope.music.vkaudio.play();
             audio.playing = true;
         }
@@ -981,7 +1004,7 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
     $scope.downloadVKSong = (item) => {
         const link = document.createElement('a');
         link.download = `${item.title}.mp3`;
-        link.href = `https://vrit.me${item.url}`;
+        link.href = `/song/vkmp3/${item.vk_id}/${item.hash}`;
         link.click();
     };
 
@@ -1003,7 +1026,7 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
     $scope.uploadSongVK = (item, plistId) => {
         plistId = plistId || $scope.music.currentPlaylistId;
         item.adding = false;
-        MusicService.uploadSongVK(item.title, item.url, item.duration, plistId, socket.getId())
+        MusicService.uploadSongVK(item.title, item.vk_id, item.hash, item.duration, plistId, socket.getId())
             .catch(err => Notification.info(err.data));
     };
 

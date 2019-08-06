@@ -258,7 +258,7 @@ body {
 // Colors && vars
 $main: rgba(33,33,33,0.2);
 $item: rgba(33,33,33,0.45);
-$item-active: rgba(0,0,0,0.38);
+$item-active: rgba(0,0,0,0.5);
 $item-border: rgba(white, 0.35);
 $controls: rgba(white, 0.9);
 $header-height: 45px;
@@ -524,7 +524,7 @@ $footer-height: 25px;
 
               .cut {
                 cursor: pointer;
-                white-space: normal;
+                white-space: nowrap;
 
                 &:hover {
                   text-decoration: underline;

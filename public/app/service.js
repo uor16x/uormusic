@@ -64,7 +64,7 @@ function MusicService($http) {
     this.getPlaylist = function (id) {
         return $http.get(`/playlist/${id}`);
     };
-    this.uploadSong = function (playlistId, files) {
+    this.uploadSong = function (playlistId, files, progressCB) {
         const formData = new FormData();
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
@@ -74,6 +74,9 @@ function MusicService($http) {
         return $http({
             url: `/song/${playlistId}`,
             method: 'POST',
+            uploadEventHandlers: {
+                progress: progressCB
+            },
             data: formData,
             headers: { 'Content-Type': undefined},
             transformRequest: angular.identity
@@ -124,12 +127,13 @@ function MusicService($http) {
     this.search = function (mode, query) {
         return $http.get(`/song/search/${mode}/${query}`);
     };
-    this.uploadSongVK = function (title, url, duration, playlistId, socketId) {
+    this.uploadSongVK = function (title, vk_id, hash, duration, playlistId, socketId) {
         return $http.post('/song/vk', {
             playlistId,
             title,
             duration,
-            url,
+            vk_id,
+            hash,
             socketId
         });
     };

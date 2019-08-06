@@ -6,6 +6,7 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 const uuid = require('node-uuid');
+const request = require('request');
 
 const audio = require('../helper/audio');
 
@@ -35,6 +36,32 @@ const idParser = link => {
     const match = link.match(idParserRegExp);
     return (match && match[2].length === 11) ? match[2] : false;
 };
+function transformSecondsToFullDuration(seconds) {
+    seconds = parseInt(seconds);
+    const mins = Math.floor(seconds / 60);
+    const finalMins = mins < 10 ? `0${mins}` : mins;
+    const remainingSecs = seconds % 60;
+    const finalSecs = remainingSecs < 10 ? `0${remainingSecs}` : remainingSecs;
+    return (!isNaN(finalMins) && !isNaN(finalSecs)) ? `${finalMins}:${finalSecs}` : null;
+}
+
+function parseSearchResponse(list) {
+    return list.map(song => {
+        const [
+            id, owner, url, title, artist, duration,
+            album, author, authorLink, lyrics, flags,
+            context, extra, hashes, image
+        ] = song;
+        const thirdHash = hashes.substr(hashes.indexOf('///') + 3).substr(0, 18);
+        return {
+            id: uuid.v4(),
+            vk_id: `${owner}_${id}`,
+            title: `${artist} - ${title}`,
+            duration: transformSecondsToFullDuration(duration),
+            hash: `${author}_${thirdHash}`
+        };
+    })
+}
 
 module.exports = app => {
     router.get('/search/:mode/:query', async (req, res) => {
@@ -42,20 +69,9 @@ module.exports = app => {
             return res.result('Mode or query missing');
         }
         if (req.params.mode === 'VK') {
-            axios.get(`https://vrit.me/audios205372980?q=${encodeURIComponent(req.params.query)}`)
+            axios.get(`http://api.xn--41a.ws/api.php?method=search&q=${encodeURIComponent(req.params.query)}&key=${app.env.VK_API_KEY}`)
                 .then(response => {
-                    const page = cheerio.load(response.data);
-                    const audioEntries = page('.info');
-                    const audios = [];
-                    for (let i = 0; i < audioEntries.length; i++) {
-                        const currentAudioEntry = cheerio.load(audioEntries[i]);
-                        audios.push({
-                            id: uuid.v4(),
-                            title: `${currentAudioEntry('.artist')[0].children[0].data} - ${currentAudioEntry('.title')[0].children[0].data}`,
-                            duration: currentAudioEntry('.duration')[0].children[0].data,
-                            url: currentAudioEntry('a')[0].attribs.href
-                        });
-                    }
+                    const audios = parseSearchResponse(response.data.list);
                     return res.result(null, audios);
                 })
                 .catch(err => {
@@ -66,6 +82,21 @@ module.exports = app => {
         } else {
             return res.result('Unrecognized mode');
         }
+    });
+
+    router.get('/vkmp3/:id/:hash', (req, res) => {
+        if (!req.params.id || !req.params.hash) {
+            return res.result('Vk id or hash missing');
+        }
+        const url = `http://api.xn--41a.ws/api.php?method=get.audio&ids=${req.params.id}&hash=${req.params.hash}&key=${app.env.VK_API_KEY}`;
+        axios.get(url)
+            .then(response => {
+                res.setHeader('content-disposition', `attachment`);
+                request(response.data[0][2]).pipe(res);
+            })
+            .catch(err => {
+                return res.result(err);
+            });
     });
 
     router.post('/youtube', (req, res) => {
@@ -143,8 +174,11 @@ module.exports = app => {
         if (!req.body.playlistId) {
             return res.result('Playlist id missing');
         }
-        if (!req.body.url) {
-            return res.result('Link missing');
+        if (!req.body.vk_id) {
+            return res.result('vk_id missing');
+        }
+        if (!req.body.hash) {
+            return res.result('Hash missing');
         }
         if (!req.body.title) {
             return res.result('Title missing');
@@ -163,67 +197,78 @@ module.exports = app => {
             setTimeout(() => {
                 const streamFileName = `${songFileName}-DOWNLOADED.mp3`;
                 const file = fs.createWriteStream(streamFileName);
-                const url = 'https://vrit.me' + encodeURI(req.body.url);
-                axios({
-                    url,
-                    method: 'GET',
-                    responseType: 'stream'
-                }).then(response => {
-                    if (response && response.data) {
-                        socket && socket.emit('progress:download', {
-                            playlistId: req.body.playlistId,
-                            title: req.body.title,
-                            id: songFileName
+                const url = `http://api.xn--41a.ws/api.php?method=get.audio&ids=${req.body.vk_id}&hash=${req.body.hash}&key=${app.env.VK_API_KEY}`;
+                axios.get(url)
+                    .then(response => {
+                        return axios({
+                            url: response.data[0][2],
+                            method: 'GET',
+                            responseType: 'stream'
                         });
-                    }
-                    file.on('finish', () => {
-                        socket && socket.emit('progress:encode', {
-                            playlistId: req.body.playlistId,
-                            title: req.body.title,
-                            id: songFileName
-                        });
-                        audio.increaseBitrate(streamFileName, songFileName, req.body.title, async err => {
-                            if (err) {
-                                console.log(err);
-                                socket && socket.emit('progress:fail', {
-                                    id: songFileName
-                                });
-                                return queueCB();
-                            }
-                            const fileObject = new app.models.file({
-                                path: songFileName
-                            });
-                            fileObject.save(err => {
-                                return err ? console.error(err) : null;
-                            });
-                            const newSong = new app.models.song({
+                    })
+                    .then(response => {
+                        if (response && response.data) {
+                            socket && socket.emit('progress:download', {
+                                playlistId: req.body.playlistId,
                                 title: req.body.title,
-                                file: fileObject
+                                id: songFileName
                             });
-                            await newSong.save();
-                            const playlist = await app.services.playlist.get({ _id: req.body.playlistId });
-                            if (!playlist) {
-                                return res.result('Error getting playlist');
-                            }
-                            playlist.songs = [newSong._id, ...playlist.songs];
-                            await playlist.save();
-                            socket && socket.emit('progress:finish', {
-                                id: songFileName,
-                                newSong,
-                                playlistId: req.body.playlistId
+                        }
+                        file.on('finish', () => {
+                            socket && socket.emit('progress:encode', {
+                                playlistId: req.body.playlistId,
+                                title: req.body.title,
+                                id: songFileName
+                            });
+                            audio.increaseBitrate(streamFileName, songFileName, req.body.title, async err => {
+                                if (err) {
+                                    console.log(err);
+                                    socket && socket.emit('progress:fail', {
+                                        id: songFileName
+                                    });
+                                    return queueCB();
+                                }
+                                const fileObject = new app.models.file({
+                                    path: songFileName
+                                });
+                                fileObject.save(err => {
+                                    return err ? console.error(err) : null;
+                                });
+                                const newSong = new app.models.song({
+                                    title: req.body.title,
+                                    file: fileObject
+                                });
+                                await newSong.save();
+                                const playlist = await app.services.playlist.get({ _id: req.body.playlistId });
+                                if (!playlist) {
+                                    return res.result('Error getting playlist');
+                                }
+                                playlist.songs = [newSong._id, ...playlist.songs];
+                                await playlist.save();
+                                socket && socket.emit('progress:finish', {
+                                    id: songFileName,
+                                    newSong,
+                                    playlistId: req.body.playlistId
+                                });
+                                queueCB();
+                            })
+                        });
+                        file.on('error', (err) => {
+                            console.log(err);
+                            socket && socket.emit('progress:fail', {
+                                id: songFileName
                             });
                             queueCB();
-                        })
-                    });
-                    file.on('error', (err) => {
+                        });
+                        response.data.pipe(file);
+                    })
+                    .catch(err => {
                         console.log(err);
                         socket && socket.emit('progress:fail', {
                             id: songFileName
                         });
                         queueCB();
                     });
-                    response.data.pipe(file);
-                });
             }, 500);
         };
         pushQueue(queueItem);
@@ -306,25 +351,28 @@ module.exports = app => {
     });
 
     router.post('/:id', app.upload.array("songs[]", 30), async (req, res) => {
-        const songs = await req.files
-            .map(file => {
+        const songs = [];
+        req.files.forEach(file => {
+            audio.increaseBitrate(file.path, `${file.path}_320`, file.originalname.replace('.mp3', ''), async err => {
                 const fileObject = new app.models.file({
                     path: file.path
                 });
                 fileObject.save(err => {
                     return err ? console.error(err) : null;
                 });
-
-                return {
+                songs.push({
                     title: file.originalname.replace('.mp3', ''),
                     file: fileObject
-                };
+                });
+                if (songs.length === req.files.length) {
+                    const createdSongs = await app.models.song.create(songs);
+                    const playlist = await app.services.playlist.get({ _id: req.params.id });
+                    playlist.songs = [...createdSongs.map(s => s._id), ...playlist.songs];
+                    await playlist.save();
+                    return res.result(null, createdSongs);
+                }
             });
-        const createdSongs = await app.models.song.create(songs);
-        const playlist = await app.services.playlist.get({ _id: req.params.id });
-        playlist.songs = [...createdSongs.map(s => s._id), ...playlist.songs];
-        await playlist.save();
-        return res.result(null, createdSongs);
+        });
     });
 
     router.get('/get/:id', async (req, res) => {
