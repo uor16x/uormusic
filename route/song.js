@@ -355,7 +355,7 @@ module.exports = app => {
         req.files.forEach(file => {
             audio.increaseBitrate(file.path, `${file.path}_320`, file.originalname.replace('.mp3', ''), async err => {
                 const fileObject = new app.models.file({
-                    path: file.path
+                    path: `${file.path}_320`
                 });
                 fileObject.save(err => {
                     return err ? console.error(err) : null;
