@@ -549,6 +549,17 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
         if (!$scope.music.playing && $scope.music.currentSongId) {
             $scope.music.audio.play();
             $scope.music.playing = true;
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: $scope.music.currentSongTitle,
+                });
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    $scope.next();
+                });
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    $scope.prev();
+                });
+            }
         }
     };
 
