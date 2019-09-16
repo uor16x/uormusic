@@ -552,7 +552,7 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: $scope.music.currentSongTitle,
-                    artis: $scope.music.currentPlayingPlaylistName
+                    artist: $scope.music.currentPlayingPlaylistName
                 });
                 navigator.mediaSession.setActionHandler('previoustrack', () => {
                     $scope.prev();
