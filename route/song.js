@@ -52,13 +52,14 @@ function parseSearchResponse(list) {
             album, author, authorLink, lyrics, flags,
             context, extra, hashes, image
         ] = song;
+        const secondHash = hashes.substr(hashes.indexOf('//') + 2).substr(0, 18);
         const thirdHash = hashes.substr(hashes.indexOf('///') + 3).substr(0, 18);
         return {
             id: uuid.v4(),
             vk_id: `${owner}_${id}`,
             title: `${artist} - ${title}`,
             duration: transformSecondsToFullDuration(duration),
-            hash: `${author}_${thirdHash}`
+            hash: `${author}_${secondHash}_${thirdHash}`
         };
     })
 }
