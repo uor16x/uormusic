@@ -107,6 +107,7 @@ function configureApp(app) {
                 .getResponse();
         }
     };
+    app.use(bodyParser.json({limit: '100mb', extended: false}));
     app.post('/alexa', (req, res, next) => {
         if (!app.alexaSkill) {
             app.alexaSkill = Alexa.SkillBuilders
@@ -143,7 +144,6 @@ function configureApp(app) {
     app.use((req, res, next) => {
         next();
     });
-    app.use(bodyParser.json({limit: '100mb', extended: false}));
 
     /**
      * Custom middlewares
