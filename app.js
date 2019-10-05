@@ -12,7 +12,7 @@ const fs = require('fs');
 const lastfmapi = require('lastfmapi');
 const uuid = require('node-uuid');
 const http = require('http');
-const Alexa = require('ask-sdk');
+const Alexa = require('./alexa');
 
 process.on('uncaughtException', err => {
     console.log('Caught exception: ' + err);
@@ -79,60 +79,6 @@ function configureApp(app) {
     app.upload = multer({storage: storage});
 
     /**
-     * Alexa
-     */
-    const LaunchRequestHandler = {
-        canHandle(handlerInput) {
-            return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
-        },
-        handle(handlerInput) {
-            const speechText = 'Welcome to the Alexa Skills Kit, you can say hello!';
-            return handlerInput.responseBuilder
-                .speak(speechText)
-                .reprompt(speechText)
-                .withSimpleCard('Hello World', speechText)
-                .getResponse();
-        }
-    };
-    const HelloWorldIntentHandler = {
-        canHandle(handlerInput) {
-            return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-                && handlerInput.requestEnvelope.request.intent.name === 'HelloWorldIntent';
-        },
-        handle(handlerInput) {
-            const speechText = 'Hello World!';
-            return handlerInput.responseBuilder
-                .speak(speechText)
-                .withSimpleCard('Hello World', speechText)
-                .getResponse();
-        }
-    };
-    app.use(bodyParser.json({limit: '100mb', extended: false}));
-    app.post('/alexa', (req, res, next) => {
-        if (!app.alexaSkill) {
-            app.alexaSkill = Alexa.SkillBuilders
-                .custom()
-                .addRequestHandlers(
-                    LaunchRequestHandler,
-                    HelloWorldIntentHandler
-                )
-                .create();
-        }
-        console.log(app.alexaSkill);
-        console.log('-----');
-        console.log(req.body);
-        app.alexaSkill.invoke(req.body)
-            .then(function(responseBody) {
-                console.log(responseBody);
-                res.json(responseBody);
-            })
-            .catch(function(error) {
-                console.log(error);
-                res.status(500).send('Error during the request');
-            });
-    });
-
-    /**
      * Public
      */
     app.use('/node_modules', express.static('node_modules'));
@@ -143,6 +89,20 @@ function configureApp(app) {
     });
     app.use((req, res, next) => {
         next();
+    });
+    app.use(bodyParser.json({limit: '100mb', extended: false}));
+
+    /**
+     * Alexa
+     */
+    app.alexaSkill = Alexa.getSkill();
+    app.post('/alexa', (req, res) => {
+        app.alexaSkill.invoke(req.body)
+            .then(responseBody => res.json(responseBody))
+            .catch((error) => {
+                console.log(error);
+                return res.status(500).send('Error during the request');
+            });
     });
 
     /**
