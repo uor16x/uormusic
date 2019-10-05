@@ -107,7 +107,7 @@ function configureApp(app) {
                 .getResponse();
         }
     };
-    app.use('/alexa', (req, res, next) => {
+    app.post('/alexa', (req, res, next) => {
         if (!app.alexaSkill) {
             app.alexaSkill = Alexa.SkillBuilders
                 .custom()
@@ -117,7 +117,7 @@ function configureApp(app) {
                 )
                 .create();
         }
-        console.log(req.body);
+        console.log(req);
         app.alexaSkill.invoke(req.body)
             .then(function(responseBody) {
                 console.log(responseBody);
