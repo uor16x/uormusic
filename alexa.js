@@ -30,16 +30,10 @@ const HelloWorldIntentHandler =  {
 }
 };
 
-function getSkill() {
-    return sdk.SkillBuilders
-        .custom()
-        .addRequestHandlers(
-            LaunchRequestHandler,
-            HelloWorldIntentHandler
-        )
-        .create();
-}
-
-module.exports = {
-    getSkill
-};
+module.exports = () => sdk.SkillBuilders
+    .custom()
+    .addRequestHandlers(
+        LaunchRequestHandler,
+        HelloWorldIntentHandler
+    )
+    .create();;
