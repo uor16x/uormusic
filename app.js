@@ -117,7 +117,9 @@ function configureApp(app) {
                 )
                 .create();
         }
-        console.log(req);
+        console.log(app.alexaSkill);
+        console.log('-----');
+        console.log(req.body);
         app.alexaSkill.invoke(req.body)
             .then(function(responseBody) {
                 console.log(responseBody);
