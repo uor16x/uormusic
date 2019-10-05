@@ -12,6 +12,7 @@ const fs = require('fs');
 const lastfmapi = require('lastfmapi');
 const uuid = require('node-uuid');
 const http = require('http');
+const Alexa = require('ask-sdk');
 
 process.on('uncaughtException', err => {
     console.log('Caught exception: ' + err);
@@ -76,6 +77,57 @@ function configureApp(app) {
         }
     });
     app.upload = multer({storage: storage});
+
+    /**
+     * Alexa
+     */
+    const LaunchRequestHandler = {
+        canHandle(handlerInput) {
+            return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
+        },
+        handle(handlerInput) {
+            const speechText = 'Welcome to the Alexa Skills Kit, you can say hello!';
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt(speechText)
+                .withSimpleCard('Hello World', speechText)
+                .getResponse();
+        }
+    };
+    const HelloWorldIntentHandler = {
+        canHandle(handlerInput) {
+            return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+                && handlerInput.requestEnvelope.request.intent.name === 'HelloWorldIntent';
+        },
+        handle(handlerInput) {
+            const speechText = 'Hello World!';
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .withSimpleCard('Hello World', speechText)
+                .getResponse();
+        }
+    };
+    app.use('/alexa', (req, res, next) => {
+        if (!app.alexaSkill) {
+            app.alexaSkill = Alexa.SkillBuilders
+                .custom()
+                .addRequestHandlers(
+                    LaunchRequestHandler,
+                    HelloWorldIntentHandler
+                )
+                .create();
+        }
+        console.log(req.body);
+        app.alexaSkill.invoke(req.body)
+            .then(function(responseBody) {
+                console.log(responseBody);
+                res.json(responseBody);
+            })
+            .catch(function(error) {
+                console.log(error);
+                res.status(500).send('Error during the request');
+            });
+    });
 
     /**
      * Public
