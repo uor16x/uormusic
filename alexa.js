@@ -4,17 +4,18 @@ const sdk = require('ask-sdk');
  * Handlers
  */
 const LaunchRequestHandler = {
-        canHandle: function(handlerInput) {
+    canHandle: function(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
     },
     handle: function(handlerInput) {
-    const speechText = 'Welcome to the Alexa Skills Kit, you can say hello!';
-    return handlerInput.responseBuilder
-        .speak(speechText)
-        .reprompt(speechText)
-        .withSimpleCard('Hello World', speechText)
-        .getResponse();
-}
+        const userId = handlerInput.requestEnvelope.context.System.user.accessToken;
+        const speechText = userId ? `Your user id is: ${userId}` : 'Cant find user id;
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .withSimpleCard('Hello World', speechText)
+            .getResponse();
+    }
 };
 const HelloWorldIntentHandler =  {
         canHandle: function(handlerInput) {
@@ -31,7 +32,7 @@ const HelloWorldIntentHandler =  {
     }
     return handlerInput.responseBuilder
         .speak(speechText)
-        .addAudioPlayerPlayDirective('REPLACE_ALL', stream.url, stream.token, 0, null)
+        // .addAudioPlayerPlayDirective('REPLACE_ALL', stream.url, stream.token, 0, null)
         .getResponse();
 }
 };
