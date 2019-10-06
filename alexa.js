@@ -28,7 +28,7 @@ const texts = {
         BASIC: () => `See ya later pal`
     },
     overview: {
-        BASIC: (playlists, songs) => `Your music library have ${playlists} playlists with total of ${songs} songs`
+        BASIC: (playlists, songs) => `Your music library have ${playlists} playlists with total of ${songs} songs. Тест один два три`
     }
 };
 
