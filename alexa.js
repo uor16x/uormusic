@@ -21,8 +21,11 @@ const texts = {
     help: {
         BASIC: () => `This is the helptext. Currently in development, sorry`
     },
+    fallback: {
+        BASIC: () => `Sorry, I can\'t understand you`
+    },
     cancelAndStop: {
-        BASIC: () => `See ya later, pal`
+        BASIC: () => `See ya later pal`
     }
 };
 
@@ -94,6 +97,19 @@ const SessionEndedRequestHandler = {
         return handlerInput.responseBuilder.getResponse();
     }
 };
+const FallbackIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.FallbackIntent';
+    },
+    handle(handlerInput) {
+        const speechText = texts.help.BASIC();
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
 const IntentReflectorHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest';
@@ -132,6 +148,7 @@ module.exports = _app => {
             HelpIntentHandler,
             CancelAndStopIntentHandler,
             SessionEndedRequestHandler,
+            FallbackIntentHandler,
             IntentReflectorHandler
         )
         .addErrorHandlers(
