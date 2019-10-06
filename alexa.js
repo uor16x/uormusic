@@ -9,7 +9,7 @@ const LaunchRequestHandler = {
     },
     handle: function(handlerInput) {
         const userId = handlerInput.requestEnvelope.context.System.user.accessToken;
-        const speechText = userId ? `Your user id is: ${userId}` : 'Cant find user id;
+        const speechText = userId ? `Your user id is: ${userId}` : 'Cant find user id';
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(speechText)
