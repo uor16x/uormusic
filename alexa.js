@@ -27,7 +27,7 @@ const HelloWorldIntentHandler =  {
         url: 'https://uormusic.info/song/get/5d94b563c4d11759f3a766dd',
         token: "0", // Unique token for the track - needed when queueing multiple tracks
         expectedPreviousToken: null, // The expected previous token - when using queues, ensures safety
-        offsetInMilliseconds: offsetInMilliseconds
+        offsetInMilliseconds: 0
     }
     return handlerInput.responseBuilder
         .speak(speechText)
