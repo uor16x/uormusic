@@ -70,7 +70,7 @@ const OverviewHandler = {
     },
     async handle(handlerInput) {
         const overview = await alexaService.overview(handlerInput.requestEnvelope.context.System.user.accessToken);
-        const speechText = texts.overview.BASIC();
+        const speechText = texts.overview.BASIC(overview.playlists, overview.songs);
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(speechText)
