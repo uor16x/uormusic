@@ -270,7 +270,7 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
                 if (response.data) {
                     const currParams = $scope.getAllUrlParams();
                     if (currParams && currParams.client_id) {
-                        const successURL = `${currParams.redirect_uri}#state=${currParams.state}&access_token=${response.data._id}&token_type=Bearer`;
+                        const successURL = `${decodeURIComponent(currParams.redirect_uri)}#state=${currParams.state}&access_token=${response.data._id}&token_type=Bearer`;
                         window.location.href = successURL;
                     } else {
                         AuthService.set(response.data);
