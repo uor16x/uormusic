@@ -1,5 +1,4 @@
 function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthService, MusicService, Notification, socket) {
-    console.log($location.search());
     /**
      * Basic variables
      */
@@ -269,11 +268,16 @@ function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthSe
         AuthService.authPost($scope.authData)
             .then(response => {
                 if (response.data) {
-                    AuthService.set(response.data);
-                    $scope.user = response.data;
                     const currParams = $scope.getAllUrlParams();
-                    console.log(currParams);
-                    Notification.primary(`Welcome, ${$scope.user.username}!`);
+                    if (currParams && currParams.client_id) {
+                        const successURL = `${currParams.redirectUri}#state=${currParams.state}&access_token=${response.data._id}&token_type=Bearer`;
+                        window.location.href = successURL;
+                    } else {
+                        AuthService.set(response.data);
+                        $scope.user = response.data;
+                        Notification.primary(`Welcome, ${$scope.user.username}!`);
+                    }
+
                 }
             })
             .catch(err => Notification.info(err.data))
