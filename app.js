@@ -97,6 +97,7 @@ function configureApp(app) {
      */
     app.alexaSkill = Alexa();
     app.post('/alexa', (req, res) => {
+        console.log(req.body);
         app.alexaSkill.invoke(req.body)
             .then(responseBody => res.json(responseBody))
             .catch((error) => {
