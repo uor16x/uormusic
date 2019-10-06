@@ -23,9 +23,15 @@ const HelloWorldIntentHandler =  {
     },
     handle: function(handlerInput) {
     const speechText = 'Hello World!';
+    const stream = {
+        url: 'https://uormusic.info/song/get/5d94b563c4d11759f3a766dd',
+        token: "0", // Unique token for the track - needed when queueing multiple tracks
+        expectedPreviousToken: null, // The expected previous token - when using queues, ensures safety
+        offsetInMilliseconds: offsetInMilliseconds
+    }
     return handlerInput.responseBuilder
         .speak(speechText)
-        .withSimpleCard('Hello World', speechText)
+        .addAudioPlayerPlayDirective('REPLACE_ALL', stream.url, stream.token, 0, null)
         .getResponse();
 }
 };
