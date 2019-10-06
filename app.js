@@ -83,7 +83,11 @@ function configureApp(app) {
      */
     app.use('/node_modules', express.static('node_modules'));
     app.use(express.static('public'));
-    app.get('/', (req, res) => res.sendFile('music.html', { root: __dirname + '/public' }));
+    app.get('/', (req, res) => {
+        console.log(req.params);
+        console.log(req.originalUrl);
+        return res.sendFile('music.html', { root: __dirname + '/public' });
+    });
     app.get('/shared', (req, res) => {
         res.sendFile('shared.html', { root: __dirname + '/public' });
     });
@@ -97,7 +101,6 @@ function configureApp(app) {
      */
     app.alexaSkill = Alexa();
     app.post('/alexa', (req, res) => {
-        console.log(req.body);
         app.alexaSkill.invoke(req.body)
             .then(responseBody => res.json(responseBody))
             .catch((error) => {
