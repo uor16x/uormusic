@@ -1,4 +1,5 @@
 const sdk = require('ask-sdk');
+let app;
 
 /**
  * Handlers
@@ -7,9 +8,15 @@ const LaunchRequestHandler = {
     canHandle: function(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
     },
-    handle: function(handlerInput) {
+    handle: async function(handlerInput) {
+        let speechText;
         const userId = handlerInput.requestEnvelope.context.System.user.accessToken;
-        const speechText = userId ? `Your user id is: ${userId}` : 'Cant find user id';
+        if (userId) {
+            const currentUser = await app.services.user.get({ _id: userId });
+            speechText = currentUser ? `Hello, ${currentUser.username}` : 'Cant find user';
+        } else {
+            speechText =  'User id is missing';
+        }
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(speechText)
@@ -37,10 +44,13 @@ const HelloWorldIntentHandler =  {
 }
 };
 
-module.exports = () => sdk.SkillBuilders
-    .custom()
-    .addRequestHandlers(
-        LaunchRequestHandler,
-        HelloWorldIntentHandler
-    )
-    .create();;
+module.exports = _app => {
+    app = _app;
+    return sdk.SkillBuilders
+        .custom()
+        .addRequestHandlers(
+            LaunchRequestHandler,
+            HelloWorldIntentHandler
+        )
+        .create();
+};
