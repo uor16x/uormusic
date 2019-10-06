@@ -1,4 +1,5 @@
 const sdk = require('ask-sdk');
+let alexaService;
 let app;
 
 /**
@@ -26,6 +27,9 @@ const texts = {
     },
     cancelAndStop: {
         BASIC: () => `See ya later pal`
+    },
+    overview: {
+        BASIC: (playlists, songs) => `Your music library have ${playlists} playlists with total of ${songs} songs`
     }
 };
 
@@ -48,6 +52,11 @@ const LaunchRequestHandler = {
             if (!currentUser) {
                 throw new Error(texts.launch.USER_NOT_FOUND());
             }
+
+            const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+            sessionAttributes.currentUser = currentUser;
+            handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
+
             speechText = texts.launch.SUCCESS(currentUser.username);
             return response
                 .speak(speechText)
@@ -62,6 +71,22 @@ const LaunchRequestHandler = {
         }
     }
 };
+
+const OverviewHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'Overview';
+    },
+    async handle(handlerInput) {
+        const overview = await alexaService.overview(handlerInput.requestEnvelope.context.System.user.accessToken);
+        const speechText = texts.overview.BASIC();
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+
 const HelpIntentHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -120,7 +145,7 @@ const IntentReflectorHandler = {
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .reprompt('add a reprompt if you want to keep the session open for the user to respond')
             .getResponse();
     }
 };
@@ -141,11 +166,13 @@ const ErrorHandler = {
 
 module.exports = _app => {
     app = _app;
+    alexaService = require('./alexa.service')(_app);
     return sdk.SkillBuilders
         .custom()
         .addRequestHandlers(
             LaunchRequestHandler,
             HelpIntentHandler,
+            OverviewHandler,
             CancelAndStopIntentHandler,
             SessionEndedRequestHandler,
             FallbackIntentHandler,
