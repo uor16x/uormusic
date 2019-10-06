@@ -2,7 +2,7 @@ let app;
 
 const methods = {
     overview: async userId => {
-        const playlists = await app.service.user.get({ _id: userId }, false, ['playlists']);
+        const playlists = await app.services.user.get({ _id: userId }, false, ['playlists']);
         return {
             playlists: playlists.length,
             songs: playlists.reduce((acc, item) => {

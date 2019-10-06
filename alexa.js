@@ -16,8 +16,7 @@ let app;
 const texts = {
     launch: {
         REQUIRED_LINK: () => `Welcome to uormusic dot info. To use this skill you have to link you account first. You can do that in skill settings in your Alexa app`,
-        USER_NOT_FOUND: () => `Sorry, I can\'t find such user. Perhaps, it was deleted from the database. Contact the site support to resolve this issue.`,
-        SUCCESS: (username) => `Welcome ${username}! Nice to hear you again!`
+        SUCCESS: () => `Welcome, nice to hear you again!`
     },
     help: {
         BASIC: () => `This is the helptext. Currently in development, sorry`
@@ -48,16 +47,8 @@ const LaunchRequestHandler = {
             if (!userId) {
                 throw new Error(texts.launch.REQUIRED_LINK());
             }
-            const currentUser = await app.services.user.get({ _id: userId });
-            if (!currentUser) {
-                throw new Error(texts.launch.USER_NOT_FOUND());
-            }
 
-            const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-            sessionAttributes.currentUser = currentUser;
-            handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
-            speechText = texts.launch.SUCCESS(currentUser.username);
+            speechText = texts.launch.SUCCESS();
             return response
                 .speak(speechText)
                 .reprompt(speechText)
