@@ -1,6 +1,14 @@
 const sdk = require('ask-sdk');
 let app;
 
+const texts = {
+    launch: {
+        REQUIRED_LINK: () => `Welcome to uormusic dot info. To use this skill you have to link you account first. You can do that in skill settings in your Alexa app`,
+        USER_NOT_FOUND: () => `Sorry, I can\'t find such user. Perhaps, it was deleted from the database. Contact the site support to resolve this issue.`,
+        SUCCESS: (username) => `Welcome, ${username}! Nice to hear you again!`
+    }
+};
+
 /**
  * Handlers
  */
@@ -9,18 +17,25 @@ const LaunchRequestHandler = {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
     },
     handle: async function(handlerInput) {
+        const response = handlerInput.responseBuilder;
         let speechText;
-        const userId = handlerInput.requestEnvelope.context.System.user.accessToken;
-        if (userId) {
+        try {
+            const userId = handlerInput.requestEnvelope.context.System.user.accessToken;
+            if (!userId) {
+                throw new Error(texts.launch.REQUIRED_LINK());
+            }
             const currentUser = await app.services.user.get({ _id: userId });
-            speechText = currentUser ? `Hello, ${currentUser.username}` : 'Cant find user';
-        } else {
-            speechText =  'User id is missing';
+            if (!currentUser) {
+                throw new Error(texts.launch.USER_NOT_FOUND());
+            }
+            speechText = texts.launch.SUCCESS(currentUser.username);
+        } catch (err) {
+            speechText = err.message;
+            response.withShouldEndSession(true);
         }
-        return handlerInput.responseBuilder
+        return response
             .speak(speechText)
             .reprompt(speechText)
-            .withSimpleCard('Hello World', speechText)
             .getResponse();
     }
 };
