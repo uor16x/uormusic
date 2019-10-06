@@ -1,4 +1,8 @@
 function MainController($scope, $location, $anchorScroll, $sce, debounce, AuthService, MusicService, Notification, socket) {
+    if ($location.search().client_id) {
+        window.location = 'google.com';
+    }
+    console.log($location.search());
     /**
      * Basic variables
      */
