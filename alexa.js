@@ -103,7 +103,7 @@ const FallbackIntentHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.FallbackIntent';
     },
     handle(handlerInput) {
-        const speechText = texts.help.BASIC();
+        const speechText = texts.fallback.BASIC();
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(speechText)
