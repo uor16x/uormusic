@@ -1,4 +1,5 @@
 const sdk = require('ask-sdk');
+const latinize = require('latinize');
 let alexaService;
 let app;
 
@@ -28,7 +29,7 @@ const texts = {
         BASIC: () => `See ya later pal`
     },
     overview: {
-        BASIC: (playlists, songs) => `Your music library have ${playlists} playlists with total of ${songs} songs. Тест один два три`
+        BASIC: (playlists, songs) => `Your music library have ${playlists} playlists with total of ${songs} songs.`
     }
 };
 
@@ -71,6 +72,25 @@ const OverviewHandler = {
     async handle(handlerInput) {
         const overview = await alexaService.overview(handlerInput.requestEnvelope.context.System.user.accessToken);
         const speechText = texts.overview.BASIC(overview.playlists, overview.songs);
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+
+const CurrentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'Current';
+    },
+    async handle(handlerInput) {
+        const userId = handlerInput.requestEnvelope.context.System.user.accessToken;
+        const currentUser = app.services.user.get({ _id: userId }, false, ['playlists']);
+        const speechText = currentUser.playlists.reduce((acc, item) => {
+            acc += ` ${latinize(item.name)}`;
+            return acc;
+        }, '');
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(speechText)
@@ -164,6 +184,7 @@ module.exports = _app => {
             LaunchRequestHandler,
             HelpIntentHandler,
             OverviewHandler,
+            CurrentHandler,
             CancelAndStopIntentHandler,
             SessionEndedRequestHandler,
             FallbackIntentHandler,
