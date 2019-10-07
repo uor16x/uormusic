@@ -86,7 +86,7 @@ const CurrentHandler = {
     },
     async handle(handlerInput) {
         const userId = handlerInput.requestEnvelope.context.System.user.accessToken;
-        const currentUser = app.services.user.get({ _id: userId }, false, ['playlists']);
+        const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
         const speechText = currentUser.playlists.reduce((acc, item) => {
             acc += ` ${latinize(item.name)}`;
             return acc;
