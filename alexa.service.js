@@ -118,10 +118,11 @@ const methods = {
             case 'SONG':
                 return 'Current song is';
             case 'LIST':
-                console.log('Index is: ' + parseInt(slotValues.number.resolved) - 1);
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
                 const playlists = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
-                const currentPlaylist = await app.services.playlist.get({ _id: playlists[parseInt(slotValues.number.resolved) - 1]._id}, false, ['songs']);
+                const playlistIndex = parseInt(slotValues.number.resolved.match(/[0-9 , \.]+/g)[0]) - 1;
+                const currentPlaylist = await app.services.playlist
+                    .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
                 session.current.playlist = currentPlaylist;
                 const songUrlBase = app.env.mode === 'dev'
                     ? `${app.env.OUTSIDE_URL}/song/get`
