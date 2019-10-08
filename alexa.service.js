@@ -120,7 +120,13 @@ const methods = {
             case 'LIST':
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
                 const playlists = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
-                const playlistIndex = parseInt(slotValues.number.resolved.match(/[0-9 , \.]+/g)[0]) - 1;
+
+                const a1 = slotValues.number.resolved.match(/[0-9 , \.]+/g);
+                const a2 = a1[0];
+                const a3 = parseInt(a2);
+                const a4 = a3 - 1;
+                const playlistIndex = a4;
+                console.log(playlistIndex);
                 const currentPlaylist = await app.services.playlist
                     .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
                 session.current.playlist = currentPlaylist;
