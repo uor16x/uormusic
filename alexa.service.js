@@ -120,6 +120,10 @@ const methods = {
             case 'LIST':
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
                 const playlists = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
+                console.log(playlists.reduce((acc, item) => {
+                    acc += `${item.name} | `;
+                    return acc;
+                }, ''))
 
                 const a1 = slotValues.number.resolved.match(/[0-9 , \.]+/g);
                 const a2 = a1[0];
