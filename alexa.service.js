@@ -122,10 +122,10 @@ const methods = {
                 const playlistsUnsorted = await app.services.playlist.get({ _id: currentUser.playlists}, true);
                 const playlists = [];
                 currentUser.playlists.forEach((playlistID, i) => {
-                    playlists[i] = playlistsUnsorted.find(playlistUnsorted => playlistUnsorted._id === playlistID);
+                    playlists[i] = playlistsUnsorted.find(playlistUnsorted =>
+                        playlistUnsorted._id.toString() === playlistID.toString());
                 });
                 const playlistIndex = parseInt(slotValues.number.resolved.match(/[0-9 , \.]+/g)[0]) - 1;
-                console.log(playlistIndex);
                 const currentPlaylist = await app.services.playlist
                     .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
                 session.current.playlist = currentPlaylist;
