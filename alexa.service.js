@@ -121,8 +121,8 @@ const methods = {
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
                 const playlistsUnsorted = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
                 const playlists = [];
-                currentUser.playlists.forEach((p, i) => {
-                    playlists[i] = playlistsUnsorted.find(pU => pU._id === p._id);
+                currentUser.playlists.forEach((playlistID, i) => {
+                    playlists[i] = playlistsUnsorted.find(playlistUnsorted => playlistUnsorted._id === playlistID);
                 });
                 const playlistIndex = parseInt(slotValues.number.resolved.match(/[0-9 , \.]+/g)[0]) - 1;
                 console.log(playlistIndex);
