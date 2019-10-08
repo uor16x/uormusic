@@ -118,6 +118,7 @@ const methods = {
             case 'SONG':
                 return 'Current song is';
             case 'LIST':
+                console.log('Index is: ' + parseInt(slotValues.number.resolved) - 1);
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
                 const playlists = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
                 const currentPlaylist = await app.services.playlist.get({ _id: playlists[parseInt(slotValues.number.resolved) - 1]._id}, false, ['songs']);

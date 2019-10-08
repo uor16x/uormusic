@@ -212,8 +212,8 @@ const AudioPlayerEventHandler = {
         return handlerInput.requestEnvelope.request.type.startsWith('AudioPlayer.');
     },
     handle(handlerInput){
-        console.log(handlerInput.requestEnvelope.request.type);
-        console.log(handlerInput.requestEnvelope.request.offsetInMilliseconds);
+        /*console.log(handlerInput.requestEnvelope.request.type);
+        console.log(handlerInput.requestEnvelope.request.offsetInMilliseconds);*/
         return handlerInput.responseBuilder
             .getResponse();
     }
