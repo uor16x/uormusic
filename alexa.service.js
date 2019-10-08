@@ -118,8 +118,8 @@ const methods = {
             case 'SONG':
                 return 'Current song is';
             case 'LIST':
-                const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
-                const playlistsUnsorted = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
+                const currentUser = await app.services.user.get({ _id: userId });
+                const playlistsUnsorted = await app.services.playlist.get({ _id: currentUser.playlists}, true);
                 const playlists = [];
                 currentUser.playlists.forEach((playlistID, i) => {
                     playlists[i] = playlistsUnsorted.find(playlistUnsorted => playlistUnsorted._id === playlistID);
