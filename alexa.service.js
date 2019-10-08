@@ -119,17 +119,12 @@ const methods = {
                 return 'Current song is';
             case 'LIST':
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
-                const playlists = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
-                console.log(playlists.reduce((acc, item) => {
-                    acc += `${item.name} | `;
-                    return acc;
-                }, ''))
-
-                const a1 = slotValues.number.resolved.match(/[0-9 , \.]+/g);
-                const a2 = a1[0];
-                const a3 = parseInt(a2);
-                const a4 = a3 - 1;
-                const playlistIndex = a4;
+                const playlistsUnsorted = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
+                const playlists = [];
+                currentUser.playlists.forEach((p, i) => {
+                    playlists[i] = playlistsUnsorted.find(pU => pU._id === p._id);
+                });
+                const playlistIndex = parseInt(slotValues.number.resolved.match(/[0-9 , \.]+/g)[0]) - 1;
                 console.log(playlistIndex);
                 const currentPlaylist = await app.services.playlist
                     .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
