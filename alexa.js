@@ -232,8 +232,11 @@ const PrevHandler = {
 const PersistenceRequestInterceptor = {
     async process(handlerInput) {
         if(handlerInput.requestEnvelope.session && handlerInput.requestEnvelope.session['new']) {
+            constole.log('Into new session process #1');
             const attrs = await handlerInput.attributesManager.getPersistentAttributes();
+            constole.log('Attrs read => ' + attrs);
             handlerInput.attributesManager.setSessionAttributes(attrs);
+            console.log('Attrs set');
         }
     }
 };
