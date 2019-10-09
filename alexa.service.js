@@ -1,4 +1,5 @@
 const latinize = require('latinize');
+let songUrlBase;
 let app;
 
 const methods = {
@@ -67,45 +68,25 @@ const methods = {
                 throw new Error('Something went wrong');
         }
     },
-    perform: async (userId, variable, session) => {
-        switch (variable) {
-            case 'FOUND':
-                const songs = await app.services.song
-                    .get({ _id: session.found.songs }, true);
-                const songUrlBase = app.env.mode === 'dev'
-                    ? `${app.env.OUTSIDE_URL}/song/get`
-                    : 'https://uormusic.info/song/get';
-                const streams = songs.map(song => {
-                    return {
-                        url: `${songUrlBase}/${song._id}`,
-                        title: song.title,
-                        token: song._id.toString(),
-                        expectedPreviousToken: null,
-                        offsetInMilliseconds: 0
-                    };
-                });
-                return {
-                    stream: streams[session.found.startIndex],
-                    list: streams
-                };
-            default:
-                throw new Error('Sorry, can\'t understand what to perform.');
-        }
-    },
     search: async (userId, query) => {
         const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
         const playlists = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
-        query = query.toLowerCase();
-        console.log(query);
-        const foundPlaylist = playlists.find(p => p.name.toLowerCase().indexOf(query) > -1);
-        if (!foundPlaylist) {
-            console.log(`Cant find playlist: ${query}`);
-            throw new Error(`Can\'t find such playlist called ${query}`);
+        const foundIndicies = playlists
+            .reduce((acc, item, index) => {
+                if (item.name.toLowerCase().indexOf(query) > -1) {
+                    acc.push(index);
+                }
+                return acc;
+            }, []);
+        if (foundIndicies.length === 0) {
+            console.log(`Cant find playlists: ${query}`);
+            throw new Error(`Can\'t find any playlist called ${query}`);
         }
-        return {
-            name: foundPlaylist.name,
-            songs: foundPlaylist.songs.map(s => s._id)
-        };
+        const speechText = foundIndicies.reduce((acc, item) => {
+            acc += `#${item} - ${latinize(playlists[item].name)}; `;
+            return acc;
+        }, 'The following playlists were found: ');
+        return speechText;
     },
     set: async (handlerInput) => {
         const userId = methods.getUserId(handlerInput);
@@ -129,9 +110,6 @@ const methods = {
                 const currentPlaylist = await app.services.playlist
                     .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
                 session.current.playlist = currentPlaylist;
-                const songUrlBase = app.env.mode === 'dev'
-                    ? `${app.env.OUTSIDE_URL}/song/get`
-                    : 'https://uormusic.info/song/get';
                 const currentSong = currentPlaylist.songs[0];
                 session.current.song = {
                     url: `${songUrlBase}/${currentSong._id}`,
@@ -150,16 +128,16 @@ const methods = {
                 throw new Error('Something went wrong');
         }
     },
-    intentErrorHandler: (handlerInput, err) => {
-        console.error(err.stack);
-        speechText = err.message;
+    intentErrorHandler: (handlerInput, msg, endSession) => {
+        console.error(msg);
         return handlerInput.responseBuilder
-            .speak(speechText)
-            .withShouldEndSession(true)
+            .speak(msg)
+            .withShouldEndSession(endSession)
             .getResponse();
     },
     getUserId: handlerInput => handlerInput.requestEnvelope.context.System.user.accessToken,
-    overview: async userId => {
+    overview: async handlerInput => {
+        const userId = methods.getUserId(handlerInput);
         const user = await app.services.user.get({ _id: userId }, false, ['playlists']);
         return {
             playlists: user.playlists.length,
@@ -168,10 +146,43 @@ const methods = {
                 return acc;
             }, 0)
         };
+    },
+    findNext: session => {
+        const songIndex = session.current.playlist.songs
+            .findIndex(song => song._id.toString() === session.current.song.token);
+        const newIndex = songIndex === session.current.playlist.songs.length - 1
+            ? 0
+            : songIndex + 1;
+        const newSong = session.current.playlist.songs[newIndex];
+        return {
+            url: `${songUrlBase}/${newSong._id}`,
+            title: newSong.title,
+            token: newSong._id.toString(),
+            expectedPreviousToken: session.current.song.token,
+            offsetInMilliseconds: 0
+        };
+    },
+    findPrev: session => {
+        const songIndex = session.current.playlist.songs
+            .findIndex(song => song._id.toString() === session.current.song.token);
+        const newIndex = songIndex - 1 === 0
+            ? 0
+            : songIndex - 1;
+        const newSong = session.current.playlist.songs[newIndex];
+        return {
+            url: `${songUrlBase}/${newSong._id}`,
+            title: newSong.title,
+            token: newSong._id.toString(),
+            expectedPreviousToken: session.current.song.token,
+            offsetInMilliseconds: 0
+        };
     }
 };
 
 module.exports = _app => {
     app = _app;
+    songUrlBase = app.env.mode === 'dev'
+        ? `${app.env.OUTSIDE_URL}/song/get`
+        : 'https://uormusic.info/song/get';
     return methods;
-}
+};

@@ -1,11 +1,13 @@
 const sdk = require('ask-sdk');
+const s3Adapter = require('ask-sdk-s3-persistence-adapter');
 let alexaService;
 let app;
 
 const texts = {
     launch: {
         REQUIRED_LINK: () => `Welcome to uormusic dot info. To use this skill you have to link you account first. You can do that in skill settings in your Alexa app`,
-        SUCCESS: () => `Welcome, nice to hear you again!`
+        SUCCESS: () => `Welcome, nice to hear you again!`,
+        REPROMPT: () => `You can say HELP to find out existing commands`
     },
     help: {
         BASIC: () => `This is the helptext. Currently in development, sorry`
@@ -33,24 +35,18 @@ const LaunchRequestHandler = {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
     },
     handle: async function(handlerInput) {
-        console.debug('Launched!');
-        try {
-            let speechText;
-            const userId = alexaService.getUserId(handlerInput);
-            if (!userId) {
-                throw new Error(texts.launch.REQUIRED_LINK());
-            }
-            const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-            sessionAttributes.current = {};
-            handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-            speechText = texts.launch.SUCCESS();
-            return handlerInput.responseBuilder
-                .speak(speechText)
-                .reprompt(speechText)
-                .getResponse();
-        } catch (err) {
-            return alexaService.intentErrorHandler(handlerInput, err);
+        const userId = alexaService.getUserId(handlerInput);
+        if (!userId) {
+            return alexaService.intentErrorHandler(
+                handlerInput,
+                texts.launch.REQUIRED_LINK(),
+                true
+            )
         }
+        return handlerInput.responseBuilder
+            .speak(texts.launch.SUCCESS())
+            .reprompt(texts.launch.REPROMPT())
+            .getResponse();
     }
 };
 
@@ -60,19 +56,19 @@ const OverviewHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'Overview';
     },
     async handle(handlerInput) {
-        try {
-            const overview = await alexaService.overview(handlerInput.requestEnvelope.context.System.user.accessToken);
-            if (!overview) {
-                throw new Error(texts.overview.CANT_GET());
-            }
-            const speechText = texts.overview.BASIC(overview.playlists, overview.songs);
-            return handlerInput.responseBuilder
-                .speak(speechText)
-                .reprompt(speechText)
-                .getResponse();
-        } catch (err) {
-            return alexaService.intentErrorHandler(handlerInput, err);
+        const overview = await alexaService.overview(handlerInput);
+        if (!overview) {
+            return alexaService.intentErrorHandler(
+                handlerInput,
+                texts.overview.CANT_GET(),
+                false
+            );
         }
+        const speechText = texts.overview.BASIC(overview.playlists, overview.songs);
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withShouldEndSession(false)
+            .getResponse();
     }
 };
 const CurrentHandler = {
@@ -81,20 +77,16 @@ const CurrentHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'Current';
     },
     async handle(handlerInput) {
-        try {
-            const slotValues = alexaService.getSlotValues(handlerInput);
-            const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-            const userId = alexaService.getUserId(handlerInput);
-            let speechText;
-            if (userId && slotValues && slotValues.variable) {
-                speechText = await alexaService.getCurrent(userId, slotValues.variable, sessionAttributes);
-                return handlerInput.responseBuilder
-                    .speak(speechText)
-                    .reprompt(speechText)
-                    .getResponse();
-            }
-        } catch (err) {
-            return alexaService.intentErrorHandler(handlerInput, err);
+        const slotValues = alexaService.getSlotValues(handlerInput);
+        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        const userId = alexaService.getUserId(handlerInput);
+        let speechText;
+        if (userId && slotValues && slotValues.variable) {
+            speechText = await alexaService.getCurrent(userId, slotValues.variable, sessionAttributes);
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .withShouldEndSession(false)
+                .getResponse();
         }
     }
 };
@@ -104,22 +96,14 @@ const SearchHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'Search';
     },
     async handle(handlerInput) {
-        try {
-            const slots = alexaService.getSlotValues(handlerInput);
-            const userId = alexaService.getUserId(handlerInput);
-            const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        const slots = alexaService.getSlotValues(handlerInput);
+        const userId = alexaService.getUserId(handlerInput);
 
-            sessionAttributes.found = await alexaService.search(userId, slots.searchQuery.resolved);;
-            handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
-            const speechText = texts.search.BASIC(sessionAttributes.found.name);
-            return handlerInput.responseBuilder
-                .speak(speechText)
-                .reprompt(speechText)
-                .getResponse();
-        } catch (err) {
-            return alexaService.intentErrorHandler(handlerInput, err);
-        }
+        const speechText = await alexaService.search(userId, slots.searchQuery.resolved);
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withShouldEndSession(false)
+            .getResponse();
     }
 };
 const SetHandler = {
@@ -128,38 +112,60 @@ const SetHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'Set';
     },
     async handle(handlerInput) {
-        try {
-            const { speechText, session } = await alexaService.set(handlerInput);
-            return handlerInput.responseBuilder
-                .speak(speechText)
-                .addAudioPlayerPlayDirective(
-                    'REPLACE_ALL',
-                    session.current.song.url,
-                    session.current.song.token,
-                    0,
-                    null
-                )
-                .getResponse();
-        } catch (err) {
-            return alexaService.intentErrorHandler(handlerInput, err);
-        }
+        const { speechText, session } = await alexaService.set(handlerInput);
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .addAudioPlayerPlayDirective(
+                'REPLACE_ALL',
+                session.current.song.url,
+                session.current.song.token,
+                0,
+                null
+            )
+            .withShouldEndSession(true)
+            .getResponse();
     }
 };
 
+const AudioPlayerEventHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'AudioPlayer.PlaybackNearlyFinished';
+    },
+    async handle(handlerInput){
+        const {
+            attributesManager,
+            responseBuilder
+        } = handlerInput;
+        const persistentAttributes = await attributesManager.getPersistentAttributes();
+        const sessionAttributes = attributesManager.getSessionAttributes();
+        sessionAttributes.current.song = alexaService.findNext(persistentAttributes);
+        attributesManager.setSessionAttributes(sessionAttributes);
+
+        return responseBuilder
+            .addAudioPlayerPlayDirective(
+                'ENQUEUE',
+                sessionAttributes.current.song.url,
+                sessionAttributes.current.song.token,
+                0,
+                persistentAttributes.current.song.token
+            )
+            .getResponse();
+    }
+};
 const PauseHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest'
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PauseIntent';
     },
     async handle(handlerInput) {
-        try {
-            return handlerInput.responseBuilder
-                .addAudioPlayerStopDirective()
-                .withShouldEndSession(false)
-                .getResponse();
-        } catch (err) {
-            return alexaService.intentErrorHandler(handlerInput, err);
-        }
+        const session = handlerInput.attributesManager.getSessionAttributes();
+        session.savedSong = Object.assign(session.current.song,
+            { offsetInMilliseconds: handlerInput.requestEnvelope.context.AudioPlayer.offsetInMilliseconds });
+        handlerInput.attributesManager.setSessionAttributes(session);
+        return handlerInput.responseBuilder
+            .addAudioPlayerStopDirective()
+            .withShouldEndSession(true)
+            .getResponse();
     }
 };
 const ResumeHandler = {
@@ -168,56 +174,67 @@ const ResumeHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.ResumeIntent';
     },
     async handle(handlerInput) {
-        try {
-            const speechText = 'Resume called';
-            return handlerInput.responseBuilder
-                .speak(speechText)
-                .getResponse();
-        } catch (err) {
-            return alexaService.intentErrorHandler(handlerInput, err);
-        }
+        const session = handlerInput.attributesManager.getSessionAttributes();
+        session.current.song = session.savedSong;
+        return handlerInput.responseBuilder
+            .addAudioPlayerPlayDirective(
+                'REPLACE_ALL',
+                session.current.song.url,
+                session.current.song.token,
+                session.savedSong.offsetInMilliseconds,
+                null
+            )
+            .withShouldEndSession(true)
+            .getResponse();
     }
 };
-const PerformHandler = {
+const NextHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-            && handlerInput.requestEnvelope.request.intent.name === 'Perform';
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NextIntent';
     },
     async handle(handlerInput) {
-        try {
-            const userId = alexaService.getUserId(handlerInput);
-            const slotValues = alexaService.getSlotValues(handlerInput);
-            const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-
-            sessionAttributes.current = await alexaService.perform(userId, slotValues.variable.id, sessionAttributes);
-            handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
-            return handlerInput.responseBuilder
-                .addAudioPlayerPlayDirective(
-                    'REPLACE_ALL',
-                    sessionAttributes.current.stream.url,
-                    sessionAttributes.current.stream.token,
-                    0,
-                    null
-                )
-                .getResponse();
-        } catch (err) {
-            return alexaService.intentErrorHandler(handlerInput, err);
-        }
+        const session = handlerInput.attributesManager.getSessionAttributes();
+        session.current.song = alexaService.findNext(session);
+        return handlerInput.responseBuilder
+            .addAudioPlayerPlayDirective(
+                'REPLACE_ALL',
+                session.current.song.url,
+                session.current.song.token,
+                0,
+                null
+            )
+            .withShouldEndSession(true)
+            .getResponse();
+    }
+};
+const PrevHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PreviousIntent';
+    },
+    async handle(handlerInput) {
+        const session = handlerInput.attributesManager.getSessionAttributes();
+        session.current.song = alexaService.findPrev(session);
+        return handlerInput.responseBuilder
+            .addAudioPlayerPlayDirective(
+                'REPLACE_ALL',
+                session.current.song.url,
+                session.current.song.token,
+                0,
+                null
+            )
+            .withShouldEndSession(true)
+            .getResponse();
     }
 };
 
-const AudioPlayerEventHandler = {
-    canHandle(handlerInput) {
-        return handlerInput.requestEnvelope.request.type.startsWith('AudioPlayer.');
-    },
-    handle(handlerInput){
-        console.log(handlerInput.requestEnvelope.request.type);
-        /*
-        console.log(handlerInput.requestEnvelope.request.offsetInMilliseconds);
-        */
-        return handlerInput.responseBuilder
-            .getResponse();
+const PersistenceRequestInterceptor = {
+    async process(handlerInput) {
+        if(handlerInput.requestEnvelope.session && handlerInput.requestEnvelope.session['new']) {
+            const attrs = await handlerInput.attributesManager.getPersistentAttributes();
+            handlerInput.attributesManager.setSessionAttributes(attrs);
+        }
     }
 };
 
@@ -252,8 +269,10 @@ const SessionEndedRequestHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
     },
-    handle(handlerInput) {
-        // Any cleanup logic goes here.
+    async handle(handlerInput) {
+        let sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
+        handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
+        await handlerInput.attributesManager.savePersistentAttributes();
         return handlerInput.responseBuilder.getResponse();
     }
 };
@@ -284,12 +303,15 @@ const IntentReflectorHandler = {
             .getResponse();
     }
 };
+
 const ErrorHandler = {
     canHandle() {
         return true;
     },
     handle(handlerInput, error) {
-        console.log(`~~~~ Error handled: ${error.stack}`);
+        if (error.name !== 'AskSdk.GenericRequestDispatcher Error' && error.name !== 'AskSdk.AttributesManager Error') {
+            console.log(`~~~~ Error handled: ${error.stack}`);
+        }
         const speakOutput = `Sorry, I had trouble doing what you asked. Please try again.`;
 
         return handlerInput.responseBuilder
@@ -304,6 +326,7 @@ module.exports = _app => {
     alexaService = require('./alexa.service')(_app);
     return sdk.SkillBuilders
         .custom()
+        .withSkillId(app.env.ALEXA_SKILL_ID)
         .addRequestHandlers(
             LaunchRequestHandler,
             HelpIntentHandler,
@@ -313,13 +336,18 @@ module.exports = _app => {
             SetHandler,
             PauseHandler,
             ResumeHandler,
-            PerformHandler,
+            NextHandler,
+            PrevHandler,
             AudioPlayerEventHandler,
             CancelAndStopIntentHandler,
             SessionEndedRequestHandler,
             FallbackIntentHandler,
             IntentReflectorHandler
         )
+        .addRequestInterceptors(PersistenceRequestInterceptor)
+        .withPersistenceAdapter(new s3Adapter.S3PersistenceAdapter({
+            bucketName: app.env.S3_BUCKET
+        }))
         .addErrorHandlers(
             ErrorHandler
         )
