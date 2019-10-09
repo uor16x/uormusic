@@ -110,6 +110,7 @@ const methods = {
                 const currentPlaylist = await app.services.playlist
                     .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
                 session.current.playlist = currentPlaylist;
+                console.log(session.current.playlist.songs.map(s => s._id.toString()).join(', '));
                 const currentSong = currentPlaylist.songs[0];
                 session.current.song = {
                     url: `${songUrlBase}/${currentSong._id}`,
@@ -155,7 +156,7 @@ const methods = {
             : songIndex + 1;
         const newSong = session.current.playlist.songs[newIndex];
         console.log(session.current.playlist.songs.map(s => s._id.toString()).join(', '));
-        console.log(JSON.stringify(JSON.parse(newSong)));
+        console.log(JSON.stringify(newSong));
         return {
             url: `${songUrlBase}/${newSong._id}`,
             title: newSong.title,
