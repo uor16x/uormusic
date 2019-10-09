@@ -275,8 +275,7 @@ const SessionEndedRequestHandler = {
     async handle(handlerInput) {
         let sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
         handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
-        await handlerInput.attributesManager.savePersistentAttributes();
-        return handlerInput.responseBuilder.getResponse();
+        return await handlerInput.attributesManager.savePersistentAttributes();
     }
 };
 const FallbackIntentHandler = {
