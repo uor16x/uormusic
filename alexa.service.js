@@ -154,6 +154,8 @@ const methods = {
             ? 0
             : songIndex + 1;
         const newSong = session.current.playlist.songs[newIndex];
+        console.log(session.current.playlist.songs.map(s => s._id.toString()).join(', '));
+        console.log(JSON.stringify(JSON.parse(newSong)));
         return {
             url: `${songUrlBase}/${newSong._id}`,
             title: newSong.title,
