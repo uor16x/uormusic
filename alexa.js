@@ -274,8 +274,11 @@ const SessionEndedRequestHandler = {
     },
     async handle(handlerInput) {
         let sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
+        console.log('Session end; Session attrs => ' + JSON.stringify(sessionAttrs));
         handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
-        return await handlerInput.attributesManager.savePersistentAttributes();
+        await handlerInput.attributesManager.savePersistentAttributes();
+        console.log('Persistent attrs set & saved');
+        return handlerInput.responseBuilder.getResponse();
     }
 };
 const FallbackIntentHandler = {
