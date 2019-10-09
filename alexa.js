@@ -234,7 +234,7 @@ const PersistenceRequestInterceptor = {
         if(handlerInput.requestEnvelope.session && handlerInput.requestEnvelope.session['new']) {
             console.log('Into new session process #1');
             const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-            console.log('Attrs read => ' + attrs);
+            console.log('Attrs read => ' + JSON.stringify(attrs));
             handlerInput.attributesManager.setSessionAttributes(attrs);
             console.log('Attrs set');
         }

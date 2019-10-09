@@ -149,6 +149,7 @@ const methods = {
         };
     },
     findNext: session => {
+        console.log('Find next session => ' + JSON.stringify(session));
         const songIndex = session.current.playlist.songs
             .findIndex(song => song._id.toString() === session.current.song.token);
         const newIndex = songIndex === session.current.playlist.songs.length - 1
