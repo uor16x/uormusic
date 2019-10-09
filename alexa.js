@@ -113,6 +113,7 @@ const SetHandler = {
     },
     async handle(handlerInput) {
         const { speechText, session } = await alexaService.set(handlerInput);
+        await alexaService.saveSession(handlerInput);
         return handlerInput.responseBuilder
             .speak(speechText)
             .addAudioPlayerPlayDirective(
@@ -141,6 +142,7 @@ const AudioPlayerEventHandler = {
         sessionAttributes.current.song = alexaService.findNext(persistentAttributes);
         attributesManager.setSessionAttributes(sessionAttributes);
 
+        await alexaService.saveSession(handlerInput);
         return responseBuilder
             .addAudioPlayerPlayDirective(
                 'ENQUEUE',
@@ -162,6 +164,7 @@ const PauseHandler = {
         session.savedSong = Object.assign(session.current.song,
             { offsetInMilliseconds: handlerInput.requestEnvelope.context.AudioPlayer.offsetInMilliseconds });
         handlerInput.attributesManager.setSessionAttributes(session);
+        await alexaService.saveSession(handlerInput);
         return handlerInput.responseBuilder
             .addAudioPlayerStopDirective()
             .withShouldEndSession(true)
@@ -176,6 +179,7 @@ const ResumeHandler = {
     async handle(handlerInput) {
         const session = handlerInput.attributesManager.getSessionAttributes();
         session.current.song = session.savedSong;
+        await alexaService.saveSession(handlerInput);
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
@@ -196,6 +200,7 @@ const NextHandler = {
     async handle(handlerInput) {
         const session = handlerInput.attributesManager.getSessionAttributes();
         session.current.song = alexaService.findNext(session);
+        await alexaService.saveSession(handlerInput);
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
@@ -216,6 +221,7 @@ const PrevHandler = {
     async handle(handlerInput) {
         const session = handlerInput.attributesManager.getSessionAttributes();
         session.current.song = alexaService.findPrev(session);
+        await alexaService.saveSession(handlerInput);
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
@@ -273,11 +279,7 @@ const SessionEndedRequestHandler = {
         return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
     },
     async handle(handlerInput) {
-        let sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
-        console.log('Session end; Session attrs => ' + JSON.stringify(sessionAttrs));
-        handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
-        await handlerInput.attributesManager.savePersistentAttributes();
-        console.log('Persistent attrs set & saved');
+        await alexaService.saveSession(handlerInput);
         return handlerInput.responseBuilder.getResponse();
     }
 };

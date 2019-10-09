@@ -180,6 +180,11 @@ const methods = {
             expectedPreviousToken: session.current.song.token,
             offsetInMilliseconds: 0
         };
+    },
+    saveSession: async handlerInput => {
+        const sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
+        handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
+        await handlerInput.attributesManager.savePersistentAttributes();
     }
 };
 
