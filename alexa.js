@@ -139,12 +139,20 @@ const AudioPlayerEventHandler = {
         } = handlerInput;
         const persistentAttributes = await attributesManager.getPersistentAttributes();
         console.log(`PlaybackNearlyFinished: persistAttrs => ${persistentAttributes && persistentAttributes.current && JSON.stringify(persistentAttributes.current.song)}`);
-        const sessionAttributes = attributesManager.getSessionAttributes();
+        let sessionAttributes;
+        try {
+            sessionAttributes = attributesManager.getSessionAttributes();
+            sessionAttributes.current.song = alexaService.findNext(persistentAttributes);
+            attributesManager.setSessionAttributes(sessionAttributes);
+        } catch (e) {
+            console.log('ERR GET SESSION ATTRS');
+        }
         console.log(`PlaybackNearlyFinished: session => ${sessionAttributes && sessionAttributes.current && JSON.stringify(sessionAttributes.current.song)}`);
-        sessionAttributes.current.song = alexaService.findNext(persistentAttributes);
-        attributesManager.setSessionAttributes(sessionAttributes);
-
-        await alexaService.saveSession(handlerInput);
+        try {
+            attributesManager.setSessionAttributes(sessionAttributes);
+        } catch (e) {
+            console.log('ALSO CANT EVEN SAVE IT');
+        }
         return responseBuilder
             .addAudioPlayerPlayDirective(
                 'ENQUEUE',
