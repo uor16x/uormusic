@@ -277,6 +277,7 @@ const CancelAndStopIntentHandler = {
                 || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
     },
     handle(handlerInput) {
+        handlerInput.attributesManager.getSessionAttributes({});
         const speakOutput = texts.cancelAndStop.BASIC();
         return handlerInput.responseBuilder
             .speak(speakOutput)
