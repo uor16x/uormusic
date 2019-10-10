@@ -1,5 +1,16 @@
 const sdk = require('ask-sdk');
 const s3Adapter = require('ask-sdk-s3-persistence-adapter');
+const defaultAttrs = {
+    playbackSetting: {
+        loop: false,
+        shuffle: false,
+    },
+    current: {
+        song: null,
+        playlist: null
+    },
+    saved: null
+};
 let alexaService;
 let app;
 
@@ -231,17 +242,7 @@ const PersistenceRequestInterceptor = {
         console.log(`In PRI: attrs: ${JSON.stringify(persistentAttributes)}`);
         if (Object.keys(persistentAttributes).length === 0) {
             console.log('Setting attrs');
-            handlerInput.attributesManager.setPersistentAttributes({
-                playbackSetting: {
-                    loop: false,
-                    shuffle: false,
-                },
-                current: {
-                    song: null,
-                    playlist: null
-                },
-                saved: null
-            });
+            handlerInput.attributesManager.setPersistentAttributes(Object.assign({}, defaultAttrs));
         }
     }
 };
@@ -271,8 +272,7 @@ const CancelAndStopIntentHandler = {
                 || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
     },
     handle(handlerInput) {
-        let attrs = handlerInput.attributesManager.getPersistentAttributes();
-        attrs = {};
+        handlerInput.attributesManager.setPersistentAttributes(Object.assign({}, defaultAttrs));
         const speakOutput = texts.cancelAndStop.BASIC();
         return handlerInput.responseBuilder
             .speak(speakOutput)
