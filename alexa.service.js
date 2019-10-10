@@ -94,7 +94,10 @@ const methods = {
         switch (slotValues.entity.id) {
             case 'SONG':
                 if (!attrs.current.playlist) {
-                    return 'Select playlist first';
+                    return {
+                        attrs,
+                        speechText: 'Select playlist first'
+                    };
                 }
                 const selectedSong = attrs.current.playlist.songs[queryIndex - 1];
                 attrs.current.song = {
@@ -104,7 +107,6 @@ const methods = {
                     expectedPreviousToken: null,
                     offsetInMilliseconds: 0
                 };
-                console.log(`Set song attrs: ${JSON.stringify(attrs)}`);
                 return {
                     attrs,
                     speechText: `Song set: ${selectedSong.title}`
