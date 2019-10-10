@@ -240,7 +240,7 @@ const PersistenceRequestInterceptor = {
         if(handlerInput.requestEnvelope.session && handlerInput.requestEnvelope.session['new']) {
             const attrs = await handlerInput.attributesManager.getPersistentAttributes();
             handlerInput.attributesManager.setSessionAttributes(attrs);
-            console.log(`Request interceptor: attrs read: Current song: ${attrs.current && attrs.current.song}`);
+            console.log(`Request interceptor: attrs read: Current song: ${attrs.current && JSON.stringify(attrs.current.song)}`);
         }
     }
 };
@@ -251,7 +251,7 @@ const PersistenceResponseInterceptor = {
             let sessionAttrs;
             sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
             handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
-            console.log(`Response interceptor: attrs set: Current song: ${sessionAttrs.current && sessionAttrs.current.song}`);
+            console.log(`Response interceptor: attrs set: Current song: ${sessionAttrs.current && JSON.stringify(sessionAttrs.current.song)}`);
             return await handlerInput.attributesManager.savePersistentAttributes();
         }
     }

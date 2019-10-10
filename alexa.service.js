@@ -148,14 +148,14 @@ const methods = {
         };
     },
     findNext: session => {
-        console.log(`Find next called with: ${session.current && session.current.song}`);
+        console.log(`Find next called with: ${session.current && JSON.stringify(session.current.song)}`);
         const songIndex = session.current.playlist.songs
             .findIndex(song => song._id.toString() === session.current.song.token);
         const newIndex = songIndex === session.current.playlist.songs.length - 1
             ? 0
             : songIndex + 1;
         const newSong = session.current.playlist.songs[newIndex];
-        console.log(`Song found: ${newSong}`);
+        console.log(`Song found: ${JSON.stringify(newSong)}`);
         return {
             url: `${songUrlBase}/${newSong._id}`,
             title: newSong.title,
