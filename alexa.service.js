@@ -55,8 +55,6 @@ const methods = {
                     acc += `#${index + 1} ${latinize(item.title)}, `;
                     return acc;
                 }, '');
-                const result = `Current list is ${session.current.playlist.name}. It has the following songs: ${currentPlaylistSongs}`;
-                console.log(result)
                 return `Current list is ${session.current.playlist.name}. It has the following songs: ${currentPlaylistSongs}`;
             case 'LIBRARY':
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
