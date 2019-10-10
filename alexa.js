@@ -228,7 +228,9 @@ const PrevHandler = {
 const PersistenceRequestInterceptor = {
     async process(handlerInput) {
         const persistentAttributes = await handlerInput.attributesManager.getPersistentAttributes();
+        console.log(`In PRI: attrs: ${JSON.stringify(persistentAttributes)}`);
         if (Object.keys(persistentAttributes).length === 0) {
+            console.log('Setting attrs');
             handlerInput.attributesManager.setPersistentAttributes({
                 playbackSetting: {
                     loop: false,

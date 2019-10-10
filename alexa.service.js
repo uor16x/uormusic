@@ -91,6 +91,7 @@ const methods = {
     set: async (handlerInput) => {
         const userId = methods.getUserId(handlerInput);
         const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        console.log(`Attrs on set: ${JSON.stringify(attrs)}`);
         const slotValues = methods.getSlotValues(handlerInput);
         switch (slotValues.entity.id) {
             case 'SONG':
