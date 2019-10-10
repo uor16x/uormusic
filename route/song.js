@@ -380,7 +380,6 @@ module.exports = app => {
         if (!req.params.id) {
             return res.result('Id missing');
         }
-        console.log(req.params.id);
         const song = await app.services.song.get({ _id: req.params.id }, false, ['file']);
         if (song) {
             const filePath = path.resolve(song.file.path);

@@ -110,7 +110,6 @@ const methods = {
                 const currentPlaylist = await app.services.playlist
                     .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
                 session.current.playlist = currentPlaylist;
-                console.log(session.current.playlist.songs.map(s => s._id.toString()).join(', '));
                 const currentSong = currentPlaylist.songs[0];
                 session.current.song = {
                     url: `${songUrlBase}/${currentSong._id}`,
@@ -149,15 +148,14 @@ const methods = {
         };
     },
     findNext: session => {
-        console.log('Find next session => ' + JSON.stringify(session));
+        console.log(`Find next called with: ${session.current && session.current.song}`);
         const songIndex = session.current.playlist.songs
             .findIndex(song => song._id.toString() === session.current.song.token);
         const newIndex = songIndex === session.current.playlist.songs.length - 1
             ? 0
             : songIndex + 1;
         const newSong = session.current.playlist.songs[newIndex];
-        console.log(session.current.playlist.songs.map(s => s._id.toString()).join(', '));
-        console.log(JSON.stringify(newSong));
+        console.log(`Song found: ${newSong}`);
         return {
             url: `${songUrlBase}/${newSong._id}`,
             title: newSong.title,

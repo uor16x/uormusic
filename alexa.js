@@ -238,11 +238,9 @@ const PrevHandler = {
 const PersistenceRequestInterceptor = {
     async process(handlerInput) {
         if(handlerInput.requestEnvelope.session && handlerInput.requestEnvelope.session['new']) {
-            console.log('Into new session process #1');
             const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-            console.log('Attrs read => ' + JSON.stringify(attrs));
             handlerInput.attributesManager.setSessionAttributes(attrs);
-            console.log('Attrs set');
+            console.log(`Request interceptor: attrs read: Current song: ${attrs.current && attrs.current.song}`);
         }
     }
 };
@@ -251,12 +249,9 @@ const PersistenceResponseInterceptor = {
         const ses = (typeof responseOutput.shouldEndSession === "undefined" ? true : responseOutput.shouldEndSession);
         if(ses || handlerInput.requestEnvelope.request.type === 'SessionEndedRequest') {
             let sessionAttrs;
-            try {
-                sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
-            } catch (err) {
-                console.log('Errrrrrrrr');
-            }
+            sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
             handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
+            console.log(`Response interceptor: attrs set: Current song: ${sessionAttrs.current && sessionAttrs.current.song}`);
             return await handlerInput.attributesManager.savePersistentAttributes();
         }
     }
