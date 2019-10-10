@@ -50,9 +50,8 @@ const methods = {
                 }
                 const currentPlaylistSongs = session.current.playlist.songs.reduce((acc, item, index) => {
                     if (item.title.indexOf(session.current.playlist.name) > -1) {
-                        item.title = item.title
-                            .replace(session.current.playlist.name, '')
-                            .replace(/&/g, 'and');
+                        item.title = item.title.replace(session.current.playlist.name, '');
+                        item.title = item.title.replace(/&/g, 'and');
                     }
                     acc += `#${index + 1} ${latinize(item.title)}, `;
                     return acc;
