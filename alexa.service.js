@@ -50,12 +50,14 @@ const methods = {
                 }
                 const currentPlaylistSongs = session.current.playlist.songs.reduce((acc, item, index) => {
                     if (item.title.indexOf(session.current.playlist.name) > -1) {
-                        item.title = item.title.replace(session.current.playlist.name, '');
+                        item.title = item.title
+                            .replace(session.current.playlist.name, '')
+                            .replace(/&/g, 'and');
                     }
                     acc += `#${index + 1} ${latinize(item.title)}, `;
                     return acc;
                 }, '');
-                return `Current list is ${session.current.playlist.name}. It has the following songs: ${currentPlaylistSongs}`;
+                return `Current list is ${latinize(session.current.playlist.name)}. It has the following songs: ${currentPlaylistSongs}`;
             case 'LIBRARY':
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
                 return 'You have the following playlists: ' + currentUser.playlists.reduce((acc, item, index) => {
