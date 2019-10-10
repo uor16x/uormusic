@@ -138,7 +138,9 @@ const AudioPlayerEventHandler = {
             responseBuilder
         } = handlerInput;
         const persistentAttributes = await attributesManager.getPersistentAttributes();
+        console.log(`PlaybackNearlyFinished: persistAttrs => ${persistentAttributes && persistentAttributes.current && JSON.stringify(persistentAttributes.current.song)}`);
         const sessionAttributes = attributesManager.getSessionAttributes();
+        console.log(`PlaybackNearlyFinished: session => ${sessionAttributes && sessionAttributes.current && JSON.stringify(sessionAttributes.current.song)}`);
         sessionAttributes.current.song = alexaService.findNext(persistentAttributes);
         attributesManager.setSessionAttributes(sessionAttributes);
 
