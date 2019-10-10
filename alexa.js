@@ -94,6 +94,7 @@ const CurrentHandler = {
         let speechText;
         if (userId && slotValues && slotValues.variable) {
             speechText = await alexaService.getCurrent(userId, slotValues.variable, attrs);
+            console.log(speechText.length);
             return handlerInput.responseBuilder
                 .speak('Bla bla bla')
                 .withShouldEndSession(false)
