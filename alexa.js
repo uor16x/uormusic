@@ -124,16 +124,24 @@ const SetHandler = {
     },
     async handle(handlerInput) {
         const { speechText, attrs } = await alexaService.set(handlerInput);
+        if (attrs.current.song) {
+            attrs.current.saved = null;
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .addAudioPlayerPlayDirective(
+                    'REPLACE_ALL',
+                    attrs.current.song.url,
+                    attrs.current.song.token,
+                    0,
+                    null
+                )
+                .withShouldEndSession(true)
+                .getResponse();
+        }
         return handlerInput.responseBuilder
             .speak(speechText)
-            .addAudioPlayerPlayDirective(
-                'REPLACE_ALL',
-                attrs.current.song.url,
-                attrs.current.song.token,
-                0,
-                null
-            )
-            .withShouldEndSession(true)
+            .reprompt(speechText)
+            .withShouldEndSession(false)
             .getResponse();
     }
 };
@@ -167,7 +175,7 @@ const PauseHandler = {
     },
     async handle(handlerInput) {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-        attrs.savedSong = Object.assign(session.current.song,
+        attrs.saved = Object.assign(attrs.current.song,
             { offsetInMilliseconds: handlerInput.requestEnvelope.context.AudioPlayer.offsetInMilliseconds });
         return handlerInput.responseBuilder
             .addAudioPlayerStopDirective()
@@ -182,7 +190,7 @@ const ResumeHandler = {
     },
     async handle(handlerInput) {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-        attrs.current.song = session.attrs;
+        attrs.current.song = attrs.saved;
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
@@ -241,7 +249,6 @@ const PersistenceRequestInterceptor = {
         const persistentAttributes = await handlerInput.attributesManager.getPersistentAttributes();
         console.log(`In PRI: attrs: ${JSON.stringify(persistentAttributes)}`);
         if (Object.keys(persistentAttributes).length === 0) {
-            console.log('Setting attrs');
             handlerInput.attributesManager.setPersistentAttributes(Object.assign({}, defaultAttrs));
         }
     }

@@ -43,7 +43,7 @@ const methods = {
     getCurrent: async (userId, variable, session) => {
         switch (variable.id) {
             case 'SONG':
-                return 'Current song is';
+                return `Current song is ${session.current.song ? session.current.song.title : 'none'}`;
             case 'LIST':
                 if (!session.current || !session.current.playlist) {
                     return 'Current playlist is none';
@@ -62,8 +62,6 @@ const methods = {
                     acc += `#${index + 1} - ${latinize(item.name)}, `;
                     return acc;
                 }, '');
-            case 'FOUND':
-                return `Current search result is ${session.found ? session.found.name : 'none'}`;
             default:
                 throw new Error('Something went wrong');
         }
@@ -91,11 +89,25 @@ const methods = {
     set: async (handlerInput) => {
         const userId = methods.getUserId(handlerInput);
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-        console.log(`Attrs on set: ${JSON.stringify(attrs)}`);
         const slotValues = methods.getSlotValues(handlerInput);
+        const queryIndex = parseInt(slotValues.number.resolved.match(/[0-9 , \.]+/g)[0]);
         switch (slotValues.entity.id) {
             case 'SONG':
-                return 'Current song is';
+                if (!attrs.current.playlist) {
+                    return 'Select playlist first';
+                }
+                const selectedSong = attrs.current.playlist.songs[queryIndex - 1];
+                attrs.current.song = {
+                    url: `${songUrlBase}/${selectedSong._id}`,
+                    title: selectedSong.title,
+                    token: selectedSong._id.toString(),
+                    expectedPreviousToken: null,
+                    offsetInMilliseconds: 0
+                };
+                return {
+                    attrs,
+                    speechText: `Song set: ${selectedSong.title}`
+                };
             case 'LIST':
                 const currentUser = await app.services.user.get({ _id: userId });
                 const playlistsUnsorted = await app.services.playlist.get({ _id: currentUser.playlists}, true);
@@ -104,7 +116,7 @@ const methods = {
                     playlists[i] = playlistsUnsorted.find(playlistUnsorted =>
                         playlistUnsorted._id.toString() === playlistID.toString());
                 });
-                const playlistIndex = parseInt(slotValues.number.resolved.match(/[0-9 , \.]+/g)[0]) - 1;
+                const playlistIndex = queryIndex - 1;
                 const currentPlaylist = await app.services.playlist
                     .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
                 attrs.current.playlist = currentPlaylist;
@@ -118,8 +130,7 @@ const methods = {
                 };
                 return {
                     attrs,
-                    speechText: `Playlist set: ${currentPlaylist.name}`,
-                    index: 0
+                    speechText: `Playlist set: ${currentPlaylist.name}`
                 };
             default:
                 throw new Error('Something went wrong');
