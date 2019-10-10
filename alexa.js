@@ -146,7 +146,7 @@ const SetHandler = {
     }
 };
 
-const AudioPlayerEventHandler = {
+const PlaybackNearlyFinishedEventHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'AudioPlayer.PlaybackNearlyFinished';
     },
@@ -156,16 +156,43 @@ const AudioPlayerEventHandler = {
             responseBuilder
         } = handlerInput;
         const attrs = await attributesManager.getPersistentAttributes();
-        attrs.current.song = alexaService.findNext(attrs);
+        const nextSong = alexaService.findNext(attrs);
         return responseBuilder
             .addAudioPlayerPlayDirective(
                 'ENQUEUE',
-                attrs.current.song.url,
-                attrs.current.song.token,
+                nextSong.url,
+                nextSong.token,
                 0,
                 handlerInput.requestEnvelope.context.AudioPlayer.token
             )
             .getResponse();
+    }
+};
+const PlaybackStartedEventHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'AudioPlayer.PlaybackStarted';
+    },
+    async handle(handlerInput){
+        const {
+            attributesManager,
+            responseBuilder
+        } = handlerInput;
+        const attrs = await attributesManager.getPersistentAttributes();
+        if (attrs.current.song.token !== handlerInput.requestEnvelope.context.AudioPlayer.token) {
+            const foundSong = attrs.current.playlist.songs
+                .find(s => s._id.toString() === handlerInput.requestEnvelope.context.AudioPlayer.token);
+            console.log(`Song on playback start found: ${JSON.stringify(foundSong)}`);
+            attrs.current.song = {
+                url: `${app.env.mode === 'dev'
+                    ? `${app.env.OUTSIDE_URL}/song/get`
+                    : 'https://uormusic.info/song/get'}/${foundSong._id}`,
+                title: foundSong.title,
+                token: foundSong._id.toString(),
+                expectedPreviousToken: attrs.current.song.token,
+                offsetInMilliseconds: 0
+            };
+        }
+        return responseBuilder.getResponse();
     }
 };
 const PauseHandler = {
@@ -357,7 +384,8 @@ module.exports = _app => {
             ResumeHandler,
             NextHandler,
             PrevHandler,
-            AudioPlayerEventHandler,
+            PlaybackNearlyFinishedEventHandler,
+            PlaybackStartedEventHandler,
             CancelAndStopIntentHandler,
             SessionEndedRequestHandler,
             FallbackIntentHandler,
