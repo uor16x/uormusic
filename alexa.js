@@ -223,7 +223,7 @@ const ResumeHandler = {
                 'REPLACE_ALL',
                 attrs.current.song.url,
                 attrs.current.song.token,
-                attrs.savedSong.offsetInMilliseconds,
+                attrs.saved.offsetInMilliseconds,
                 null
             )
             .withShouldEndSession(true)

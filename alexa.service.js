@@ -45,9 +45,10 @@ const methods = {
             case 'SONG':
                 return `Current song is ${session.current.song ? session.current.song.title : 'none'}`;
             case 'LIST':
-                if (!session.current || !session.current.playlist) {
+                if (!session.current.playlist) {
                     return 'Current playlist is none';
                 }
+                console.log('There is current playlist: ' + JSON.stringify(session.current.playlist));
                 const currentPlaylistSongs = session.current.playlist.songs.reduce((acc, item, index) => {
                     if (item.title.indexOf(session.current.playlist.name) > -1) {
                         item.title = item.title.replace(session.current.playlist.name, '');
@@ -55,6 +56,7 @@ const methods = {
                     acc += `#${index + 1} ${latinize(item.title)}, `;
                     return acc;
                 }, '');
+                console.log(currentPlaylistSongs);
                 return `Current list is ${session.current.playlist.name}. It has the following songs: ${currentPlaylistSongs}`;
             case 'LIBRARY':
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
