@@ -78,11 +78,11 @@ const CurrentHandler = {
     },
     async handle(handlerInput) {
         const slotValues = alexaService.getSlotValues(handlerInput);
-        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        const attrs = handlerInput.attributesManager.getPersistentAttributes();
         const userId = alexaService.getUserId(handlerInput);
         let speechText;
         if (userId && slotValues && slotValues.variable) {
-            speechText = await alexaService.getCurrent(userId, slotValues.variable, sessionAttributes);
+            speechText = await alexaService.getCurrent(userId, slotValues.variable, attrs);
             return handlerInput.responseBuilder
                 .speak(speechText)
                 .withShouldEndSession(false)
@@ -112,14 +112,13 @@ const SetHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'Set';
     },
     async handle(handlerInput) {
-        const { speechText, session } = await alexaService.set(handlerInput);
-        await alexaService.saveSession(handlerInput);
+        const { speechText, attrs } = await alexaService.set(handlerInput);
         return handlerInput.responseBuilder
             .speak(speechText)
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
-                session.current.song.url,
-                session.current.song.token,
+                attrs.current.song.url,
+                attrs.current.song.token,
                 0,
                 null
             )
@@ -137,29 +136,15 @@ const AudioPlayerEventHandler = {
             attributesManager,
             responseBuilder
         } = handlerInput;
-        const persistentAttributes = await attributesManager.getPersistentAttributes();
-        console.log(`PlaybackNearlyFinished: persistAttrs => ${persistentAttributes && persistentAttributes.current && JSON.stringify(persistentAttributes.current.song)}`);
-        let sessionAttributes;
-        try {
-            sessionAttributes = attributesManager.getSessionAttributes();
-            sessionAttributes.current.song = alexaService.findNext(persistentAttributes);
-            attributesManager.setSessionAttributes(sessionAttributes);
-        } catch (e) {
-            console.log('ERR GET SESSION ATTRS');
-        }
-        console.log(`PlaybackNearlyFinished: session => ${sessionAttributes && sessionAttributes.current && JSON.stringify(sessionAttributes.current.song)}`);
-        try {
-            attributesManager.setSessionAttributes(sessionAttributes);
-        } catch (e) {
-            console.log('ALSO CANT EVEN SAVE IT');
-        }
+        const attrs = await attributesManager.getPersistentAttributes();
+        attrs.current.song = alexaService.findNext(attrs);
         return responseBuilder
             .addAudioPlayerPlayDirective(
                 'ENQUEUE',
-                sessionAttributes.current.song.url,
-                sessionAttributes.current.song.token,
+                attrs.current.song.url,
+                attrs.current.song.token,
                 0,
-                persistentAttributes.current.song.token
+                handlerInput.requestEnvelope.context.AudioPlayer.token
             )
             .getResponse();
     }
@@ -170,11 +155,9 @@ const PauseHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PauseIntent';
     },
     async handle(handlerInput) {
-        const session = handlerInput.attributesManager.getSessionAttributes();
-        session.savedSong = Object.assign(session.current.song,
+        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        attrs.savedSong = Object.assign(session.current.song,
             { offsetInMilliseconds: handlerInput.requestEnvelope.context.AudioPlayer.offsetInMilliseconds });
-        handlerInput.attributesManager.setSessionAttributes(session);
-        await alexaService.saveSession(handlerInput);
         return handlerInput.responseBuilder
             .addAudioPlayerStopDirective()
             .withShouldEndSession(true)
@@ -187,15 +170,14 @@ const ResumeHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.ResumeIntent';
     },
     async handle(handlerInput) {
-        const session = handlerInput.attributesManager.getSessionAttributes();
-        session.current.song = session.savedSong;
-        await alexaService.saveSession(handlerInput);
+        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        attrs.current.song = session.attrs;
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
-                session.current.song.url,
-                session.current.song.token,
-                session.savedSong.offsetInMilliseconds,
+                attrs.current.song.url,
+                attrs.current.song.token,
+                attrs.savedSong.offsetInMilliseconds,
                 null
             )
             .withShouldEndSession(true)
@@ -208,14 +190,13 @@ const NextHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NextIntent';
     },
     async handle(handlerInput) {
-        const session = handlerInput.attributesManager.getSessionAttributes();
-        session.current.song = alexaService.findNext(session);
-        await alexaService.saveSession(handlerInput);
+        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        attrs.current.song = alexaService.findNext(attrs);
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
-                session.current.song.url,
-                session.current.song.token,
+                attrs.current.song.url,
+                attrs.current.song.token,
                 0,
                 null
             )
@@ -229,14 +210,13 @@ const PrevHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PreviousIntent';
     },
     async handle(handlerInput) {
-        const session = handlerInput.attributesManager.getSessionAttributes();
-        session.current.song = alexaService.findPrev(session);
-        await alexaService.saveSession(handlerInput);
+        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        attrs.current.song = alexaService.findPrev(session);
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
-                session.current.song.url,
-                session.current.song.token,
+                attrs.current.song.url,
+                attrs.current.song.token,
                 0,
                 null
             )
@@ -247,24 +227,26 @@ const PrevHandler = {
 
 const PersistenceRequestInterceptor = {
     async process(handlerInput) {
-        if(handlerInput.requestEnvelope.session && handlerInput.requestEnvelope.session['new']) {
-            const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-            handlerInput.attributesManager.setSessionAttributes(attrs);
-            console.log(`Request interceptor: attrs read: Current song: ${attrs.current && JSON.stringify(attrs.current.song)}`);
+        const persistentAttributes = await handlerInput.attributesManager.getPersistentAttributes();
+        if (Object.keys(persistentAttributes).length === 0) {
+            handlerInput.attributesManager.setPersistentAttributes({
+                playbackSetting: {
+                    loop: false,
+                    shuffle: false,
+                },
+                current: {
+                    song: null,
+                    playlist: null
+                },
+                saved: null
+            });
         }
     }
 };
 const PersistenceResponseInterceptor = {
-    async process(handlerInput, responseOutput) {
-        const ses = (typeof responseOutput.shouldEndSession === "undefined" ? true : responseOutput.shouldEndSession);
-        if(ses || handlerInput.requestEnvelope.request.type === 'SessionEndedRequest') {
-            let sessionAttrs;
-            sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
-            handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
-            console.log(`Response interceptor: attrs set: Current song: ${sessionAttrs.current && JSON.stringify(sessionAttrs.current.song)}`);
-            return await handlerInput.attributesManager.savePersistentAttributes();
-        }
-    }
+    async process(handlerInput) {
+        await handlerInput.attributesManager.savePersistentAttributes();
+    },
 };
 
 const HelpIntentHandler = {
@@ -287,7 +269,8 @@ const CancelAndStopIntentHandler = {
                 || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
     },
     handle(handlerInput) {
-        handlerInput.attributesManager.getSessionAttributes({});
+        let attrs = handlerInput.attributesManager.getPersistentAttributes();
+        attrs = {};
         const speakOutput = texts.cancelAndStop.BASIC();
         return handlerInput.responseBuilder
             .speak(speakOutput)
@@ -300,7 +283,6 @@ const SessionEndedRequestHandler = {
         return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
     },
     async handle(handlerInput) {
-        await alexaService.saveSession(handlerInput);
         return handlerInput.responseBuilder.getResponse();
     }
 };

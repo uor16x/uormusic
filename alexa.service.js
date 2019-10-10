@@ -90,10 +90,7 @@ const methods = {
     },
     set: async (handlerInput) => {
         const userId = methods.getUserId(handlerInput);
-        const session = handlerInput.attributesManager.getSessionAttributes();
-        if (!session.current) {
-            session.current = {};
-        }
+        const attrs = handlerInput.attributesManager.getPersistentAttributes();
         const slotValues = methods.getSlotValues(handlerInput);
         switch (slotValues.entity.id) {
             case 'SONG':
@@ -109,18 +106,17 @@ const methods = {
                 const playlistIndex = parseInt(slotValues.number.resolved.match(/[0-9 , \.]+/g)[0]) - 1;
                 const currentPlaylist = await app.services.playlist
                     .get({ _id: playlists[playlistIndex]._id}, false, ['songs']);
-                session.current.playlist = currentPlaylist;
+                attrs.current.playlist = currentPlaylist;
                 const currentSong = currentPlaylist.songs[0];
-                session.current.song = {
+                attrs.current.song = {
                     url: `${songUrlBase}/${currentSong._id}`,
                     title: currentSong.title,
                     token: currentSong._id.toString(),
                     expectedPreviousToken: null,
                     offsetInMilliseconds: 0
                 };
-                handlerInput.attributesManager.setSessionAttributes(session);
                 return {
-                    session,
+                    attrs,
                     speechText: `Playlist set: ${currentPlaylist.name}`,
                     index: 0
                 };
@@ -147,35 +143,34 @@ const methods = {
             }, 0)
         };
     },
-    findNext: session => {
-        console.log(`Find next called with: ${session.current && JSON.stringify(session.current.song)}`);
-        const songIndex = session.current.playlist.songs
-            .findIndex(song => song._id.toString() === session.current.song.token);
-        const newIndex = songIndex === session.current.playlist.songs.length - 1
+    findNext: attrs => {
+        const songIndex = attrs.current.playlist.songs
+            .findIndex(song => song._id.toString() === attrs.current.song.token);
+        const newIndex = songIndex === attrs.current.playlist.songs.length - 1
             ? 0
             : songIndex + 1;
-        const newSong = session.current.playlist.songs[newIndex];
+        const newSong = attrs.current.playlist.songs[newIndex];
         console.log(`Song found: ${JSON.stringify(newSong)}`);
         return {
             url: `${songUrlBase}/${newSong._id}`,
             title: newSong.title,
             token: newSong._id.toString(),
-            expectedPreviousToken: session.current.song.token,
+            expectedPreviousToken: attrs.current.song.token,
             offsetInMilliseconds: 0
         };
     },
-    findPrev: session => {
-        const songIndex = session.current.playlist.songs
+    findPrev: attrs => {
+        const songIndex = attrs.current.playlist.songs
             .findIndex(song => song._id.toString() === session.current.song.token);
         const newIndex = songIndex - 1 === 0
             ? 0
             : songIndex - 1;
-        const newSong = session.current.playlist.songs[newIndex];
+        const newSong = attrs.current.playlist.songs[newIndex];
         return {
             url: `${songUrlBase}/${newSong._id}`,
             title: newSong.title,
             token: newSong._id.toString(),
-            expectedPreviousToken: session.current.song.token,
+            expectedPreviousToken: null,
             offsetInMilliseconds: 0
         };
     },
