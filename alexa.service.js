@@ -182,6 +182,7 @@ const methods = {
         };
     },
     saveSession: async handlerInput => {
+        return {};
         const sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
         handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
         await handlerInput.attributesManager.savePersistentAttributes();

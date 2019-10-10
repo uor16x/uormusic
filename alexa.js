@@ -246,6 +246,21 @@ const PersistenceRequestInterceptor = {
         }
     }
 };
+const PersistenceResponseInterceptor = {
+    async process(handlerInput, responseOutput) {
+        const ses = (typeof responseOutput.shouldEndSession === "undefined" ? true : responseOutput.shouldEndSession);
+        if(ses || handlerInput.requestEnvelope.request.type === 'SessionEndedRequest') {
+            let sessionAttrs;
+            try {
+                sessionAttrs = handlerInput.attributesManager.getSessionAttributes();
+            } catch (err) {
+                console.log('Errrrrrrrr');
+            }
+            handlerInput.attributesManager.setPersistentAttributes(sessionAttrs);
+            return await handlerInput.attributesManager.savePersistentAttributes();
+        }
+    }
+};
 
 const HelpIntentHandler = {
     canHandle(handlerInput) {
@@ -352,6 +367,7 @@ module.exports = _app => {
             IntentReflectorHandler
         )
         .addRequestInterceptors(PersistenceRequestInterceptor)
+        .addResponseInterceptors(PersistenceResponseInterceptor)
         .withPersistenceAdapter(new s3Adapter.S3PersistenceAdapter({
             bucketName: app.env.S3_BUCKET
         }))
