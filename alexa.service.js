@@ -104,6 +104,7 @@ const methods = {
                     expectedPreviousToken: null,
                     offsetInMilliseconds: 0
                 };
+                console.log(`Set song attrs: ${JSON.stringify(attrs)}`);
                 return {
                     attrs,
                     speechText: `Song set: ${selectedSong.title}`
