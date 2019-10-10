@@ -89,7 +89,7 @@ const CurrentHandler = {
     },
     async handle(handlerInput) {
         const slotValues = alexaService.getSlotValues(handlerInput);
-        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         const userId = alexaService.getUserId(handlerInput);
         let speechText;
         if (userId && slotValues && slotValues.variable) {
@@ -166,7 +166,7 @@ const PauseHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PauseIntent';
     },
     async handle(handlerInput) {
-        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.savedSong = Object.assign(session.current.song,
             { offsetInMilliseconds: handlerInput.requestEnvelope.context.AudioPlayer.offsetInMilliseconds });
         return handlerInput.responseBuilder
@@ -181,7 +181,7 @@ const ResumeHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.ResumeIntent';
     },
     async handle(handlerInput) {
-        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.current.song = session.attrs;
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
@@ -201,7 +201,7 @@ const NextHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NextIntent';
     },
     async handle(handlerInput) {
-        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.current.song = alexaService.findNext(attrs);
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
@@ -221,7 +221,7 @@ const PrevHandler = {
             && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PreviousIntent';
     },
     async handle(handlerInput) {
-        const attrs = handlerInput.attributesManager.getPersistentAttributes();
+        const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.current.song = alexaService.findPrev(session);
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
