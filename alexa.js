@@ -22,7 +22,7 @@ const texts = {
         REPROMPT: () => `You can say HELP to find out existing commands`
     },
     help: {
-        BASIC: () => `This is the helptext. Currently in development, sorry`
+        BASIC: () => `Welcome to uormusic dot info. You can use the following commands: "Show me the library" or "Overview" - to get current music library summary; Search playlist name or Find playlist name to search for playlist number. For example: Search The Smiths. What is current - command for getting current state variable. You can get the following variables: song - to get the current song, playlist - to get current playlist name and its songs, library - to get current playlists. To set a playlist or a song use set command. For example: Set playlist number 2 or Set song number 5. For more details, please, contact the developer.`
     },
     fallback: {
         BASIC: () => `Sorry, I can\'t understand you`
@@ -330,7 +330,25 @@ const LoopOffHandler = {
             .getResponse();
     }
 };
-
+const StartOverHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StartOverIntent';
+    },
+    async handle(handlerInput) {
+        const attrs = await handlerInput.attributesManager.getPersistentAttributes();
+        return handlerInput.responseBuilder
+            .addAudioPlayerPlayDirective(
+                'REPLACE_ALL',
+                attrs.current.song.url,
+                attrs.current.song.token,
+                0,
+                null
+            )
+            .withShouldEndSession(true)
+            .getResponse();
+    }
+};
 
 const PersistenceRequestInterceptor = {
     async process(handlerInput) {
@@ -447,6 +465,7 @@ module.exports = _app => {
             PrevHandler,
             LoopOnHandler,
             LoopOffHandler,
+            StartOverHandler,
             PlaybackNearlyFinishedEventHandler,
             PlaybackStartedEventHandler,
             CancelAndStopIntentHandler,
