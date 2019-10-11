@@ -53,14 +53,14 @@ const methods = {
                         item.title = item.title.replace(session.current.playlist.name, '');
                     }
                     item.title = item.title.replace(/&/g, 'and');
-                    acc += `#${index + 1} ${latinize(item.title)}, `;
+                    acc += `${latinize(item.title)} - #${index + 1} , `;
                     return acc;
                 }, '');
                 return `Current list is ${latinize(session.current.playlist.name)}. It has the following songs: ${currentPlaylistSongs}`;
             case 'LIBRARY':
                 const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
                 return 'You have the following playlists: ' + currentUser.playlists.reduce((acc, item, index) => {
-                    acc += `#${index + 1} - ${latinize(item.name)}, `;
+                    acc += `${latinize(item.name)} - #${index + 1}, `;
                     return acc;
                 }, '');
             default:

@@ -1,7 +1,7 @@
 const sdk = require('ask-sdk');
 const s3Adapter = require('ask-sdk-s3-persistence-adapter');
 const defaultAttrs = {
-    playbackSetting: {
+    playback: {
         loop: false,
         shuffle: false,
     },
@@ -278,7 +278,7 @@ const LoopOnHandler = {
     },
     async handle(handlerInput) {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-        attrs.playbackSetting.loop = true;
+        attrs.playback.loop = true;
         return handlerInput.responseBuilder
             .speak('Loop turned on')
             .addAudioPlayerPlayDirective(
@@ -299,7 +299,7 @@ const LoopOffHandler = {
     },
     async handle(handlerInput) {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-        attrs.playbackSetting.loop = false;
+        attrs.playback.loop = false;
         const nextSong = alexaService.findNext(attrs);
         return responseBuilder
             .addAudioPlayerPlayDirective(
