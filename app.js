@@ -83,8 +83,10 @@ function configureApp(app) {
      */
     app.use('/node_modules', express.static('node_modules'));
     app.use(express.static('public'));
+    app.get('/privacy', (req, res) => {
+        res.sendFile('privacy_policy.html', { root: __dirname + '/public' });
+    });
     app.get('/', (req, res) => {
-        console.log(req.originalUrl);
         return res.sendFile('music.html', { root: __dirname + '/public' });
     });
     app.get('/shared', (req, res) => {
