@@ -159,7 +159,6 @@ const PlaybackNearlyFinishedEventHandler = {
         const attrs = await attributesManager.getPersistentAttributes();
         const nextSong = attrs.playback.loop ? attrs.current.song : alexaService.findNext(attrs);
         attrs.playback.nextStreamEnqueued = true;
-        console.log(`Enqueue: ${nextSong.title}`);
         return responseBuilder
             .addAudioPlayerPlayDirective(
                 'ENQUEUE',
@@ -185,7 +184,6 @@ const PlaybackStartedEventHandler = {
         if (attrs.current.song.token !== handlerInput.requestEnvelope.context.AudioPlayer.token) {
             const foundSong = attrs.current.playlist.songs
                 .find(s => s._id.toString() === handlerInput.requestEnvelope.context.AudioPlayer.token);
-            console.log(`Song on playback start found: ${JSON.stringify(foundSong)}`);
             attrs.current.song = {
                 url: `${app.env.mode === 'dev'
                     ? `${app.env.OUTSIDE_URL}/song/get`
@@ -310,7 +308,6 @@ const LoopOffHandler = {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.playback.loop = false;
         const nextSong = alexaService.findNext(attrs);
-        console.log(`Enqueue: ${nextSong.title}`);
         if (attrs.playback.nextStreamEnqueued) {
             return responseBuilder
                 .speak('Loop turned off')
@@ -324,7 +321,7 @@ const LoopOffHandler = {
                 )
                 .getResponse();
         }
-        return responseBuilder
+        return handlerInput.responseBuilder
             .speak('Loop turned off')
             .withShouldEndSession(true)
             .getResponse();
