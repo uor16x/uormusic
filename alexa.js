@@ -157,6 +157,7 @@ const PlaybackNearlyFinishedEventHandler = {
         } = handlerInput;
         const attrs = await attributesManager.getPersistentAttributes();
         const nextSong = attrs.playback.loop ? attrs.current.song : alexaService.findNext(attrs);
+        console.log(`Enqueue: ${nextSong.title}`);
         return responseBuilder
             .addAudioPlayerPlayDirective(
                 'ENQUEUE',
