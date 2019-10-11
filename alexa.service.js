@@ -166,7 +166,6 @@ const methods = {
             ? 0
             : songIndex + 1;
         const newSong = attrs.current.playlist.songs[newIndex];
-        console.log(`Song found: ${JSON.stringify(newSong)}`);
         return {
             url: `${songUrlBase}/${newSong._id}`,
             title: newSong.title,

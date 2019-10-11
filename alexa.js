@@ -94,7 +94,6 @@ const CurrentHandler = {
         let speechText;
         if (userId && slotValues && slotValues.variable) {
             speechText = await alexaService.getCurrent(userId, slotValues.variable, attrs);
-            console.log(speechText);
             return handlerInput.responseBuilder
                 .speak(speechText)
                 .withShouldEndSession(false)
@@ -279,6 +278,7 @@ const LoopOnHandler = {
     async handle(handlerInput) {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.playback.loop = true;
+        console.log(`Enqueue: ${attrs.current.song.title}`);
         return handlerInput.responseBuilder
             .speak('Loop turned on')
             .addAudioPlayerPlayDirective(
