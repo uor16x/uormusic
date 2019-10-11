@@ -1,7 +1,7 @@
 const sdk = require('ask-sdk');
 const s3Adapter = require('ask-sdk-s3-persistence-adapter');
 const defaultAttrs = {
-    playbackSetting: {
+    playbackSettings: {
         loop: false,
         shuffle: false,
     },
@@ -157,7 +157,7 @@ const PlaybackNearlyFinishedEventHandler = {
             responseBuilder
         } = handlerInput;
         const attrs = await attributesManager.getPersistentAttributes();
-        const nextSong = alexaService.findNext(attrs);
+        const nextSong = attrs.playback.loop ? attrs.current.song : alexaService.findNext(attrs);
         return responseBuilder
             .addAudioPlayerPlayDirective(
                 'ENQUEUE',
@@ -258,7 +258,7 @@ const PrevHandler = {
     },
     async handle(handlerInput) {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
-        attrs.current.song = alexaService.findPrev(session);
+        attrs.current.song = alexaService.findPrev(attrs);
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective(
                 'REPLACE_ALL',
@@ -271,6 +271,48 @@ const PrevHandler = {
             .getResponse();
     }
 };
+const LoopOnHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.LoopOnIntent';
+    },
+    async handle(handlerInput) {
+        const attrs = await handlerInput.attributesManager.getPersistentAttributes();
+        attrs.playbackSettings.loop = true;
+        return handlerInput.responseBuilder
+            .speak('Loop turned on')
+            .addAudioPlayerPlayDirective(
+                'ENQUEUE',
+                attrs.current.song.url,
+                attrs.current.song.token,
+                0,
+                attrs.current.song.token
+            )
+            .withShouldEndSession(true)
+            .getResponse();
+    }
+};
+const LoopOffHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.LoopOnIntent';
+    },
+    async handle(handlerInput) {
+        const attrs = await handlerInput.attributesManager.getPersistentAttributes();
+        attrs.playbackSettings.loop = false;
+        const nextSong = alexaService.findNext(attrs);
+        return responseBuilder
+            .addAudioPlayerPlayDirective(
+                'ENQUEUE',
+                nextSong.url,
+                nextSong.token,
+                0,
+                handlerInput.requestEnvelope.context.AudioPlayer.token
+            )
+            .getResponse();
+    }
+};
+
 
 const PersistenceRequestInterceptor = {
     async process(handlerInput) {
@@ -385,6 +427,8 @@ module.exports = _app => {
             ResumeHandler,
             NextHandler,
             PrevHandler,
+            LoopOnHandler,
+            LoopOffHandler,
             PlaybackNearlyFinishedEventHandler,
             PlaybackStartedEventHandler,
             CancelAndStopIntentHandler,
