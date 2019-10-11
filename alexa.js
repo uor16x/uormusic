@@ -301,6 +301,7 @@ const LoopOffHandler = {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.playback.loop = false;
         const nextSong = alexaService.findNext(attrs);
+        console.log(`Enqueue: ${nextSong.title}`);
         return responseBuilder
             .addAudioPlayerPlayDirective(
                 'ENQUEUE',
