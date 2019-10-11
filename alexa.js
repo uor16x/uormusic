@@ -4,6 +4,7 @@ const defaultAttrs = {
     playback: {
         loop: false,
         shuffle: false,
+        nextStreamEnqueued: false
     },
     current: {
         song: null,
@@ -157,6 +158,7 @@ const PlaybackNearlyFinishedEventHandler = {
         } = handlerInput;
         const attrs = await attributesManager.getPersistentAttributes();
         const nextSong = attrs.playback.loop ? attrs.current.song : alexaService.findNext(attrs);
+        attrs.playback.nextStreamEnqueued = true;
         console.log(`Enqueue: ${nextSong.title}`);
         return responseBuilder
             .addAudioPlayerPlayDirective(
@@ -179,6 +181,7 @@ const PlaybackStartedEventHandler = {
             responseBuilder
         } = handlerInput;
         const attrs = await attributesManager.getPersistentAttributes();
+        attrs.playback.nextStreamEnqueued = false;
         if (attrs.current.song.token !== handlerInput.requestEnvelope.context.AudioPlayer.token) {
             const foundSong = attrs.current.playlist.songs
                 .find(s => s._id.toString() === handlerInput.requestEnvelope.context.AudioPlayer.token);
@@ -279,16 +282,21 @@ const LoopOnHandler = {
     async handle(handlerInput) {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.playback.loop = true;
-        console.log(`Enqueue: ${attrs.current.song.title}`);
+        if (attrs.playback.nextStreamEnqueued) {
+            return handlerInput.responseBuilder
+                .speak('Loop turned on')
+                .addAudioPlayerPlayDirective(
+                    'ENQUEUE',
+                    attrs.current.song.url,
+                    attrs.current.song.token,
+                    0,
+                    attrs.current.song.token
+                )
+                .withShouldEndSession(true)
+                .getResponse();
+        }
         return handlerInput.responseBuilder
             .speak('Loop turned on')
-            .addAudioPlayerPlayDirective(
-                'ENQUEUE',
-                attrs.current.song.url,
-                attrs.current.song.token,
-                0,
-                attrs.current.song.token
-            )
             .withShouldEndSession(true)
             .getResponse();
     }
@@ -296,21 +304,29 @@ const LoopOnHandler = {
 const LoopOffHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.LoopOnIntent';
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.LoopOffIntent';
     },
     async handle(handlerInput) {
         const attrs = await handlerInput.attributesManager.getPersistentAttributes();
         attrs.playback.loop = false;
         const nextSong = alexaService.findNext(attrs);
         console.log(`Enqueue: ${nextSong.title}`);
+        if (attrs.playback.nextStreamEnqueued) {
+            return responseBuilder
+                .speak('Loop turned off')
+                .withShouldEndSession(true)
+                .addAudioPlayerPlayDirective(
+                    'ENQUEUE',
+                    nextSong.url,
+                    nextSong.token,
+                    0,
+                    handlerInput.requestEnvelope.context.AudioPlayer.token
+                )
+                .getResponse();
+        }
         return responseBuilder
-            .addAudioPlayerPlayDirective(
-                'ENQUEUE',
-                nextSong.url,
-                nextSong.token,
-                0,
-                handlerInput.requestEnvelope.context.AudioPlayer.token
-            )
+            .speak('Loop turned off')
+            .withShouldEndSession(true)
             .getResponse();
     }
 };
