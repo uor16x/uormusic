@@ -108,7 +108,7 @@ function configureApp(app) {
             .then(responseBody => res.json(responseBody))
             .catch((error) => {
                 console.log(error);
-                return res.status(500).send('Error during the request');
+                return res.status(400).send('Error during the request');
             });
     });
 
