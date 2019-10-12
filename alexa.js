@@ -156,32 +156,25 @@ const PlaybackNearlyFinishedEventHandler = {
             attributesManager,
             responseBuilder
         } = handlerInput;
-        let currentUser;
-        app.services.user.get({ _id: alexaService.getUserId(handlerInput)}, false)
-            .then(user => {
-                if (user && user.lastFMToggle && user.lastFMUsername && user.lastFMKey) {
-                    currentUser = user;
-                    return app.services.song.get({ _id: handlerInput.requestEnvelope.context.AudioPlayer.token }, false);
-                }
-                return null;
-            })
-            .then(song => {
-                if (!song){
-                    throw new Error('Cant find such song while scrobbling');
-                }
-                const splittedSongname = song.title.split('-');
-                let artist = splittedSongname.length > 1 ? splittedSongname[0] : 'Unknown Artist';
-                let songname = splittedSongname.length > 1 ? splittedSongname[1] : splittedSongname[0];
-                app.lastFM.setSessionCredentials(currentUser.lastFMUsername, currentUser.lastFMKey);
-                app.lastFM.track.scrobble({
-                    'artist': artist,
-                    'track': songname,
-                    'timestamp': Math.floor((new Date()).getTime() / 1000) - 10
-                });
-            })
-            .catch(err => console.error(err.stack));
-
         const attrs = await attributesManager.getPersistentAttributes();
+        const currentUser = await app.services.user.get({ _id: alexaService.getUserId(handlerInput)}, false);
+        if (!attrs.scrobbled && user && user.lastFMToggle && user.lastFMUsername && user.lastFMKey) {
+            const song = await app.services.song.get({ _id: handlerInput.requestEnvelope.context.AudioPlayer.token }, false);
+            if (!song){
+                console.error('Cant find such song while scrobbling');
+            }
+            attrs.scrobbled = true;
+            const splittedSongname = song.title.split('-');
+            let artist = splittedSongname.length > 1 ? splittedSongname[0] : 'Unknown Artist';
+            let songname = splittedSongname.length > 1 ? splittedSongname[1] : splittedSongname[0];
+            app.lastFM.setSessionCredentials(currentUser.lastFMUsername, currentUser.lastFMKey);
+            app.lastFM.track.scrobble({
+                'artist': artist,
+                'track': songname,
+                'timestamp': Math.floor((new Date()).getTime() / 1000) - 10
+            });
+        }
+
         const nextSong = attrs.playback.loop ? attrs.current.song : alexaService.findNext(attrs);
         attrs.playback.nextStreamEnqueued = true;
         return responseBuilder
@@ -205,6 +198,7 @@ const PlaybackStartedEventHandler = {
             responseBuilder
         } = handlerInput;
         const attrs = await attributesManager.getPersistentAttributes();
+        attrs.scrobbled = false;
         attrs.playback.nextStreamEnqueued = false;
         if (attrs.current.song.token !== handlerInput.requestEnvelope.context.AudioPlayer.token) {
             const foundSong = attrs.current.playlist.songs
