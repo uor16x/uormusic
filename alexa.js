@@ -158,7 +158,7 @@ const PlaybackNearlyFinishedEventHandler = {
         } = handlerInput;
         const attrs = await attributesManager.getPersistentAttributes();
         const currentUser = await app.services.user.get({ _id: alexaService.getUserId(handlerInput)}, false);
-        if (!attrs.scrobbled && user && user.lastFMToggle && user.lastFMUsername && user.lastFMKey) {
+        if (!attrs.scrobbled && currentUser && currentUser.lastFMToggle && currentUser.lastFMUsername && currentUser.lastFMKey) {
             const song = await app.services.song.get({ _id: handlerInput.requestEnvelope.context.AudioPlayer.token }, false);
             if (!song){
                 console.error('Cant find such song while scrobbling');
