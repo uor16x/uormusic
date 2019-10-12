@@ -103,7 +103,11 @@ function configureApp(app) {
      */
     app.alexaSkill = Alexa(app);
     const adapter = new ExpressAdapter(app.alexaSkill, true, true);
-    app.post('/alexa', adapter.getRequestHandlers());
+    app.post('/alexa', (req, res) => {
+        const middleware = adapter.getRequestHandlers();
+        console.log(req.body);
+        return middleware(req, res);
+    });
     /*app.post('/alexa', (req, res) => {
         console.log(req.originalUrl);
         console.log(JSON.stringify(req.body));
