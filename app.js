@@ -103,7 +103,6 @@ function configureApp(app) {
      */
     app.alexaSkill = Alexa(app);
     app.post('/alexa', async (req, res) => {
-        console.log(req.originalUrl);
         const textBody = JSON.stringify(req.body);
         try {
             await new SkillRequestSignatureVerifier().verify(textBody, req.headers);
