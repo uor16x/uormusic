@@ -185,7 +185,10 @@ const methods = {
         const newIndex = songIndex - 1 === 0
             ? 0
             : songIndex - 1;
+        console.log(newIndex);
         const newSong = attrs.current.playlist.songs[newIndex];
+        console.log(JSON.stringify(newSong));
+        console.log(JSON.stringify(attrs.current.playlist.songs));
         return {
             url: `${songUrlBase}/${newSong._id}`,
             title: newSong.title,
