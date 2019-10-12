@@ -13,7 +13,7 @@ const lastfmapi = require('lastfmapi');
 const uuid = require('node-uuid');
 const http = require('http');
 const Alexa = require('./alexa');
-const { ExpressAdapter } = require('ask-sdk-express-adapter');
+const { SkillRequestSignatureVerifier, TimestampVerifier } = require('ask-sdk-express-adapter');
 
 process.on('uncaughtException', err => {
     console.log('Caught exception: ' + err);
@@ -102,22 +102,23 @@ function configureApp(app) {
      * Alexa
      */
     app.alexaSkill = Alexa(app);
-    const adapter = new ExpressAdapter(app.alexaSkill, true, true);
-    app.post('/alexa', (req, res) => {
-        const middleware = adapter.getRequestHandlers();
-        console.log(req.body);
-        return middleware(req, res);
-    });
-    /*app.post('/alexa', (req, res) => {
+    app.post('/alexa', async (req, res) => {
         console.log(req.originalUrl);
-        console.log(JSON.stringify(req.body));
-        app.alexaSkill.invoke(req.body)
-            .then(responseBody => res.json(responseBody))
-            .catch((error) => {
-                console.log(error);
-                return res.status(400).send('Error during the request');
-            });
-    });*/
+        const textBody = JSON.stringify(req.body);
+        try {
+            await new SkillRequestSignatureVerifier().verify(textBody, req.headers);
+            await new TimestampVerifier().verify(textBody);
+            app.alexaSkill.invoke(req.body)
+                .then(responseBody => res.json(responseBody))
+                .catch((error) => {
+                    console.log(error);
+                    return res.status(400).send('Error during the request');
+                });
+        } catch (err) {
+            console.error(err.stack);
+            return res.status(400);
+        }
+    });
 
     /**
      * Custom middlewares
