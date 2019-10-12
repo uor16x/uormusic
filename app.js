@@ -13,6 +13,7 @@ const lastfmapi = require('lastfmapi');
 const uuid = require('node-uuid');
 const http = require('http');
 const Alexa = require('./alexa');
+const { ExpressAdapter } = require('ask-sdk-express-adapter');
 
 process.on('uncaughtException', err => {
     console.log('Caught exception: ' + err);
@@ -101,7 +102,9 @@ function configureApp(app) {
      * Alexa
      */
     app.alexaSkill = Alexa(app);
-    app.post('/alexa', (req, res) => {
+    const adapter = new ExpressAdapter(app.alexaSkill, true, true);
+    app.post('alexa', adapter.getRequestHandlers());
+    /*app.post('/alexa', (req, res) => {
         console.log(req.originalUrl);
         console.log(JSON.stringify(req.body));
         app.alexaSkill.invoke(req.body)
@@ -110,7 +113,7 @@ function configureApp(app) {
                 console.log(error);
                 return res.status(400).send('Error during the request');
             });
-    });
+    });*/
 
     /**
      * Custom middlewares
