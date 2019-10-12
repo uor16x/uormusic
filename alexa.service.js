@@ -69,7 +69,12 @@ const methods = {
     },
     search: async (userId, query) => {
         const currentUser = await app.services.user.get({ _id: userId }, false, ['playlists']);
-        const playlists = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
+        const playlistsUnsorted = await app.services.playlist.get({ _id: currentUser.playlists.map(p => p._id)}, true);
+        const playlists = [];
+        currentUser.playlists.forEach((playlistID, i) => {
+            playlists[i] = playlistsUnsorted.find(playlistUnsorted =>
+                playlistUnsorted._id.toString() === playlistID.toString());
+        });
         const foundIndicies = playlists
             .reduce((acc, item, index) => {
                 if (item.name.toLowerCase().indexOf(query) > -1) {
@@ -176,7 +181,7 @@ const methods = {
     },
     findPrev: attrs => {
         const songIndex = attrs.current.playlist.songs
-            .findIndex(song => song._id.toString() === session.current.song.token);
+            .findIndex(song => song._id.toString() === attrs.current.song.token);
         const newIndex = songIndex - 1 === 0
             ? 0
             : songIndex - 1;
