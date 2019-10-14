@@ -158,7 +158,14 @@ const PlaybackNearlyFinishedEventHandler = {
         } = handlerInput;
         const attrs = await attributesManager.getPersistentAttributes();
         const currentUser = await app.services.user.get({ _id: alexaService.getUserId(handlerInput)}, false);
-        if (!attrs.scrobbled && currentUser && currentUser.lastFMToggle && currentUser.lastFMUsername && currentUser.lastFMKey) {
+        if (
+            !attrs.scrobbled
+            && currentUser
+            && currentUser.lastFMToggle
+            && currentUser.lastFMUsername
+            && currentUser.lastFMKey
+            && attrs.current.playlist.name !== 'Mom\'s music'
+        ) {
             const song = await app.services.song.get({ _id: handlerInput.requestEnvelope.context.AudioPlayer.token }, false);
             if (!song){
                 console.error('Cant find such song while scrobbling');
@@ -328,7 +335,7 @@ const LoopOffHandler = {
         attrs.playback.loop = false;
         const nextSong = alexaService.findNext(attrs);
         if (attrs.playback.nextStreamEnqueued) {
-            return responseBuilder
+            return handlerInput.responseBuilder
                 .speak('Loop turned off')
                 .withShouldEndSession(true)
                 .addAudioPlayerPlayDirective(
