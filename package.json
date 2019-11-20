@@ -22,7 +22,7 @@
   "homepage": "https://github.com/uor16x/mymusic#readme",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.0.17",
-    "angular": "^1.7.5",
+    "angular": "^1.7.9",
     "angular-ui-notification": "^0.3.6",
     "angular-ui-sortable": "^0.19.0",
     "ask-sdk": "^2.7.0",
