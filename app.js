@@ -93,10 +93,22 @@ function configureApp(app) {
     app.get('/shared', (req, res) => {
         res.sendFile('shared.html', { root: __dirname + '/public' });
     });
-    app.use((req, res, next) => {
-        next();
-    });
     app.use(bodyParser.json({limit: '100mb', extended: false}));
+
+
+    var subdomain = require('express-subdomain');
+    var router = express.Router();
+
+    router.get('/', function(req, res) {
+        res.send('Welcome to our API!');
+    });
+
+    router.get('/users', function(req, res) {
+        res.json([
+            { name: "Brian" }
+        ]);
+    });
+    app.use(subdomain('test', router));
 
     /**
      * Alexa
