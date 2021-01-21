@@ -61,7 +61,7 @@
     "password-hash-node": "^1.0.0",
     "qs": "^6.6.0",
     "request": "^2.88.0",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.4.0",
     "socket.io-client": "^2.2.0",
     "url": "^0.11.0",
     "youtube-mp3-downloader": "^0.5.3",
